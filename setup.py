@@ -4,14 +4,14 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="pytorch-viz-3d",
+    name="torch-vis",
     version="0.1.0",
-    author="PyTorch Viz Team",
-    author_email="contact@pytorchviz.com",
+    author="Torch Vis Team",
+    author_email="contact@torchvis.com",
     description="A PyTorch-specific package for 3D visualization of neural network architectures",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/pytorch-viz-3d",
+    url="https://github.com/yourusername/torch-vis",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -66,7 +66,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "pytorch-viz=pytorch_viz.cli:main",
+            "torch-vis=torch_vis.cli:main",
         ],
     },
 ) 
