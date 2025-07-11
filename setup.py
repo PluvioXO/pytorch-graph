@@ -11,7 +11,7 @@ setup(
     description="A PyTorch-specific package for 3D visualization of neural network architectures",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/torch-vis",
+    url="https://github.com/pluvioxo/torch-vis",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",

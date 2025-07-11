@@ -167,9 +167,9 @@ def extract_activations(model, input_tensor, layer_names=None):
     return extractor.extract(input_tensor, layer_names)
 
 def generate_architecture_diagram(model, input_shape, output_path="architecture.png", 
-                                title=None, format="png", style="standard"):
+                                title=None, format="png", style="flowchart"):
     """
-    Generate an architecture diagram from a PyTorch model and save as PNG.
+    Generate an enhanced flowchart architecture diagram from a PyTorch model and save as PNG.
     
     Args:
         model: PyTorch model (torch.nn.Module)
@@ -177,7 +177,7 @@ def generate_architecture_diagram(model, input_shape, output_path="architecture.
         output_path: Output file path 
         title: Diagram title (auto-generated if None)
         format: Output format ('png' or 'txt')
-        style: Diagram style ('standard' or 'research_paper')
+        style: Diagram style ('flowchart', 'standard', or 'research_paper')
     
     Returns:
         Path to the generated diagram file
@@ -204,7 +204,7 @@ def generate_architecture_diagram(model, input_shape, output_path="architecture.
 # Convenience alias
 def save_architecture_diagram(model, input_shape, output_path="architecture.png", **kwargs):
     """
-    Alias for generate_architecture_diagram for easier usage.
+    Generate and save an enhanced flowchart architecture diagram (alias for generate_architecture_diagram).
     """
     return generate_architecture_diagram(model, input_shape, output_path, **kwargs)
 
@@ -227,6 +227,25 @@ def generate_research_paper_diagram(model, input_shape, output_path="model_archi
         format="png", style="research_paper"
     )
 
+def generate_flowchart_diagram(model, input_shape, output_path="model_flowchart.png", 
+                              title=None):
+    """
+    Generate a clean flowchart-style architecture diagram with vertical flow.
+    
+    Args:
+        model: PyTorch model (torch.nn.Module)
+        input_shape: Input tensor shape (tuple)
+        output_path: Output file path
+        title: Diagram title (auto-generated if None)
+    
+    Returns:
+        Path to the generated diagram file
+    """
+    return generate_architecture_diagram(
+        model, input_shape, output_path, title, 
+        format="png", style="flowchart"
+    )
+
 # Public API - Build list dynamically based on available dependencies
 __all__ = [
     'LayerInfo',
@@ -241,6 +260,7 @@ __all__ = [
     'generate_architecture_diagram',
     'save_architecture_diagram',
     'generate_research_paper_diagram',
+    'generate_flowchart_diagram',
 ]
 
 # Add PyTorch-specific components if available
