@@ -1,3 +1,70 @@
+Metadata-Version: 2.4
+Name: torch-vis
+Version: 0.2.0
+Summary: Enhanced PyTorch neural network architecture visualization with flowchart diagrams
+Home-page: https://github.com/pluvioxo/torch-vis
+Author: Torch Vis Team
+Author-email: Torch Vis Team <contact@torchvis.com>
+License: MIT
+Project-URL: Homepage, https://github.com/pluvioxo/torch-vis
+Project-URL: Bug Tracker, https://github.com/pluvioxo/torch-vis/issues
+Project-URL: Documentation, https://torch-vis.readthedocs.io/
+Project-URL: Source Code, https://github.com/pluvioxo/torch-vis
+Keywords: pytorch,neural-network,visualization,flowchart,architecture,diagram,machine-learning,deep-learning
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Science/Research
+Classifier: Intended Audience :: Education
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Classifier: Topic :: Scientific/Engineering :: Visualization
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: torch>=1.8.0
+Requires-Dist: numpy>=1.19.0
+Requires-Dist: matplotlib>=3.3.0
+Requires-Dist: plotly>=5.0.0
+Requires-Dist: networkx>=2.5
+Requires-Dist: pandas>=1.2.0
+Provides-Extra: full
+Requires-Dist: torchvision>=0.9.0; extra == "full"
+Requires-Dist: scipy>=1.6.0; extra == "full"
+Requires-Dist: dash>=2.0.0; extra == "full"
+Requires-Dist: dash-bootstrap-components>=1.0.0; extra == "full"
+Requires-Dist: kaleido>=0.2.1; extra == "full"
+Requires-Dist: torchinfo>=1.6.0; extra == "full"
+Requires-Dist: torchsummary>=1.5.1; extra == "full"
+Provides-Extra: dev
+Requires-Dist: pytest>=6.0; extra == "dev"
+Requires-Dist: pytest-cov>=2.0; extra == "dev"
+Requires-Dist: black>=21.0; extra == "dev"
+Requires-Dist: flake8>=3.8; extra == "dev"
+Requires-Dist: mypy>=0.812; extra == "dev"
+Requires-Dist: jupyter>=1.0.0; extra == "dev"
+Requires-Dist: twine>=4.0.0; extra == "dev"
+Requires-Dist: build>=0.8.0; extra == "dev"
+Provides-Extra: docs
+Requires-Dist: sphinx>=4.0; extra == "docs"
+Requires-Dist: sphinx-rtd-theme>=0.5; extra == "docs"
+Requires-Dist: nbsphinx>=0.8.0; extra == "docs"
+Provides-Extra: examples
+Requires-Dist: torchvision>=0.9.0; extra == "examples"
+Requires-Dist: timm>=0.6.0; extra == "examples"
+Requires-Dist: transformers>=4.0.0; extra == "examples"
+Dynamic: author
+Dynamic: home-page
+Dynamic: license-file
+Dynamic: requires-python
+
 # Torch Vis
 
 **Enhanced PyTorch neural network architecture visualization with professional flowchart diagrams**. Transform your PyTorch models into beautiful, informative flowchart visualizations with comprehensive layer analysis.
