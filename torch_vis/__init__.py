@@ -48,6 +48,14 @@ except ImportError:
 except AttributeError:
     warnings.warn("Matplotlib renderer not available due to missing dependencies.")
 
+# Try to import diagram renderer for PNG generation
+try:
+    from .renderers.diagram_renderer import DiagramRenderer, SimpleDiagramRenderer
+except ImportError:
+    warnings.warn("Diagram renderer not available. Install matplotlib for PNG diagrams.")
+except (NameError, AttributeError):
+    warnings.warn("Diagram renderer not available due to missing dependencies.")
+
 # Main API functions (require PyTorch)
 def visualize(model, input_shape=None, renderer='plotly', **kwargs):
     """
@@ -158,6 +166,67 @@ def extract_activations(model, input_tensor, layer_names=None):
     extractor = ActivationExtractor(model)
     return extractor.extract(input_tensor, layer_names)
 
+def generate_architecture_diagram(model, input_shape, output_path="architecture.png", 
+                                title=None, format="png", style="standard"):
+    """
+    Generate an architecture diagram from a PyTorch model and save as PNG.
+    
+    Args:
+        model: PyTorch model (torch.nn.Module)
+        input_shape: Input tensor shape (tuple)
+        output_path: Output file path 
+        title: Diagram title (auto-generated if None)
+        format: Output format ('png' or 'txt')
+        style: Diagram style ('standard' or 'research_paper')
+    
+    Returns:
+        Path to the generated diagram file
+    """
+    if not TORCH_AVAILABLE:
+        raise ImportError("PyTorch is required for diagram generation. Install with: pip install torch")
+    
+    if format.lower() == "png":
+        try:
+            renderer = DiagramRenderer(style=style)
+            return renderer.render_model_diagram(model, input_shape, title, output_path)
+        except NameError:
+            warnings.warn("Matplotlib not available. Falling back to text diagram.")
+            format = "txt"
+            if output_path.endswith(".png"):
+                output_path = output_path.replace(".png", ".txt")
+    
+    if format.lower() == "txt":
+        renderer = SimpleDiagramRenderer()
+        return renderer.render_model_diagram(model, input_shape, title, output_path)
+    
+    raise ValueError(f"Unsupported format: {format}. Use 'png' or 'txt'.")
+
+# Convenience alias
+def save_architecture_diagram(model, input_shape, output_path="architecture.png", **kwargs):
+    """
+    Alias for generate_architecture_diagram for easier usage.
+    """
+    return generate_architecture_diagram(model, input_shape, output_path, **kwargs)
+
+def generate_research_paper_diagram(model, input_shape, output_path="model_architecture_paper.png", 
+                                   title=None):
+    """
+    Generate a research paper quality architecture diagram.
+    
+    Args:
+        model: PyTorch model (torch.nn.Module)
+        input_shape: Input tensor shape (tuple)
+        output_path: Output file path
+        title: Diagram title (auto-generated if None)
+    
+    Returns:
+        Path to the generated diagram file
+    """
+    return generate_architecture_diagram(
+        model, input_shape, output_path, title, 
+        format="png", style="research_paper"
+    )
+
 # Public API - Build list dynamically based on available dependencies
 __all__ = [
     'LayerInfo',
@@ -169,6 +238,9 @@ __all__ = [
     'create_architecture_report',
     'profile_model',
     'extract_activations',
+    'generate_architecture_diagram',
+    'save_architecture_diagram',
+    'generate_research_paper_diagram',
 ]
 
 # Add PyTorch-specific components if available
@@ -194,5 +266,12 @@ except NameError:
 try:
     MatplotlibRenderer  
     __all__.append('MatplotlibRenderer')
+except NameError:
+    pass
+
+# Add diagram renderers if available
+try:
+    DiagramRenderer
+    __all__.extend(['DiagramRenderer', 'SimpleDiagramRenderer'])
 except NameError:
     pass 
