@@ -4,7 +4,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="torch-vis",
+    name="torch-graph",
     version="0.2.0",
     author="Torch Vis Team",
     author_email="contact@torchvis.com",

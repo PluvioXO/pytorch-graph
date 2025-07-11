@@ -1,5 +1,5 @@
 Metadata-Version: 2.4
-Name: torch-vis
+Name: torch-graph
 Version: 0.2.0
 Summary: Enhanced PyTorch neural network architecture visualization with flowchart diagrams
 Home-page: https://github.com/pluvioxo/torch-vis
