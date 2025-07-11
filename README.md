@@ -1,4 +1,4 @@
-# PyTorch Viz 3D 🔥✨
+# PyTorch Viz 3D
 
 A **PyTorch-specific** package for **3D visualization of neural network architectures**. Transform your PyTorch models into stunning, interactive 3D visualizations with deep integration into the PyTorch ecosystem.
 
@@ -7,22 +7,22 @@ A **PyTorch-specific** package for **3D visualization of neural network architec
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Documentation](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://pytorch-viz-3d.readthedocs.io/)
 
-## 🚀 Features
+## Features
 
-- **🔥 PyTorch Native**: Built specifically for PyTorch with deep ecosystem integration
-- **🌟 Interactive 3D Visualization**: Powered by Plotly for smooth, interactive exploration
-- **🎨 Multiple Layout Algorithms**: Hierarchical, circular, spring, and custom layouts
-- **📊 Rich Layer Information**: Detailed hover information with parameters, shapes, and metadata
-- **🔗 Connection Visualization**: Clear representation of data flow between layers
-- **⚡ Performance Profiling**: Built-in PyTorch profiling and performance analysis
-- **🧠 Activation Analysis**: Extract and visualize intermediate activations
-- **📈 Memory Analysis**: Comprehensive memory usage tracking
-- **🎭 Customizable Themes**: Multiple color themes and styling options
-- **📤 Export Options**: Save as HTML, PNG, SVG, or PDF
-- **🔄 Model Comparison**: Compare multiple architectures side-by-side
-- **📱 Responsive Design**: Works on desktop and mobile devices
+- **PyTorch Native**: Built specifically for PyTorch with deep ecosystem integration
+- **Interactive 3D Visualization**: Powered by Plotly for smooth, interactive exploration
+- **Multiple Layout Algorithms**: Hierarchical, circular, spring, and custom layouts
+- **Rich Layer Information**: Detailed hover information with parameters, shapes, and metadata
+- **Connection Visualization**: Clear representation of data flow between layers
+- **Performance Profiling**: Built-in PyTorch profiling and performance analysis
+- **Activation Analysis**: Extract and visualize intermediate activations
+- **Memory Analysis**: Comprehensive memory usage tracking
+- **Customizable Themes**: Multiple color themes and styling options
+- **Export Options**: Save as HTML, PNG, SVG, or PDF
+- **Model Comparison**: Compare multiple architectures side-by-side
+- **Responsive Design**: Works on desktop and mobile devices
 
-## 📦 Installation
+## Installation
 
 ### Requirements
 
@@ -71,7 +71,7 @@ import pytorch_viz
 print(pytorch_viz.__version__)
 ```
 
-## 🎯 Quick Start
+## Quick Start
 
 ### Basic Usage
 
@@ -99,7 +99,7 @@ class SimpleCNN(nn.Module):
 
 model = SimpleCNN()
 
-# ✨ Visualize in 3D!
+# Visualize in 3D!
 fig = pytorch_viz.visualize(
     model, 
     input_shape=(3, 32, 32),
@@ -115,7 +115,7 @@ fig.show()
 pytorch_viz.visualize(model, input_shape=(3, 224, 224)).show()
 ```
 
-## 🎨 Advanced Usage
+## Advanced Usage
 
 ### Custom Visualization Settings
 
@@ -149,7 +149,7 @@ fig = visualizer.visualize(
 ### PyTorch-Specific Features
 
 ```python
-# 🔥 Model Analysis
+# Model Analysis
 analysis = pytorch_viz.analyze_model(
     model, 
     input_shape=(3, 224, 224),
@@ -158,7 +158,7 @@ analysis = pytorch_viz.analyze_model(
 print(f"Total parameters: {analysis['basic_info']['total_parameters']:,}")
 print(f"Memory usage: {analysis['memory']['total_memory_mb']:.2f} MB")
 
-# ⚡ Performance Profiling
+# Performance Profiling
 profiling = pytorch_viz.profile_model(
     model,
     input_shape=(3, 224, 224),
@@ -168,14 +168,14 @@ profiling = pytorch_viz.profile_model(
 print(f"Inference time: {profiling['mean_time_ms']:.2f} ms")
 print(f"Throughput: {profiling['fps']:.1f} FPS")
 
-# 🧠 Activation Extraction
+# Activation Extraction
 activations = pytorch_viz.extract_activations(
     model,
     torch.randn(1, 3, 224, 224),
     layer_names=['conv1', 'conv2']
 )
 
-# 📊 Comprehensive Report
+# Comprehensive Report
 pytorch_viz.create_architecture_report(
     model,
     input_shape=(3, 224, 224),
@@ -199,7 +199,7 @@ fig = pytorch_viz.compare_models(
 fig.show()
 ```
 
-## 🎨 Layout Styles
+## Layout Styles
 
 ### Hierarchical Layout
 ```python
@@ -237,7 +237,7 @@ visualizer = PyTorchVisualizer(layout_style='custom')
 - **Characteristics**: Groups by layer type, organized clustering
 - **Best for**: Understanding model composition and layer distribution
 
-## 🎯 Supported PyTorch Layers
+## Supported PyTorch Layers
 
 ### Convolutional Layers
 - `Conv1d`, `Conv2d`, `Conv3d` - Standard convolutions
@@ -290,7 +290,7 @@ visualizer = PyTorchVisualizer(layout_style='custom')
 - `CrossEntropyLoss`, `MSELoss`, `BCELoss` - Standard losses
 - `NLLLoss`, `PoissonNLLLoss`, `KLDivLoss` - Specialized losses
 
-## 📊 PyTorch-Specific Features
+## PyTorch-Specific Features
 
 ### Advanced Analysis
 
@@ -382,7 +382,7 @@ activations = result['activations']
 gradients = result['gradients']
 ```
 
-## 🎨 Customization
+## Customization
 
 ### Color Themes
 
@@ -461,7 +461,7 @@ pytorch_viz.create_architecture_report(
 )
 ```
 
-## 🔧 API Reference
+## API Reference
 
 ### Main Functions
 
@@ -610,7 +610,7 @@ visualizer.set_layout_style(layout_style)
 visualizer.set_spacing(spacing)
 ```
 
-## 📚 Examples
+## Examples
 
 ### Complete Examples
 
@@ -822,7 +822,7 @@ for name, model in zip(model_names, models_to_compare):
     print(f"Throughput: {profile['fps']:.1f} FPS")
 ```
 
-## 🛠️ Advanced Features
+## Advanced Features
 
 ### Custom Hooks and Analysis
 
@@ -974,7 +974,7 @@ for epoch in range(num_epochs):
         visualizer.profile_epoch(epoch)
 ```
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -1121,7 +1121,7 @@ if torch.cuda.is_available():
 gc.collect()
 ```
 
-## 📈 Best Practices
+## Best Practices
 
 ### Model Design
 
@@ -1259,7 +1259,7 @@ fig = pytorch_viz.visualize(
 )
 ```
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Here's how to get started:
 
@@ -1360,11 +1360,11 @@ class ModelAnalyzer:
 7. Push to the branch: `git push origin feature/amazing-feature`
 8. Open a Pull Request
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **PyTorch** team for the amazing deep learning framework
 - **Plotly** for the incredible 3D visualization capabilities
@@ -1372,7 +1372,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **NetworkX** for graph layout algorithms
 - **The PyTorch Community** for inspiration and feedback
 
-## 📚 Additional Resources
+## Additional Resources
 
 ### Documentation
 - [API Reference](https://pytorch-viz-3d.readthedocs.io/en/latest/api/)
@@ -1398,7 +1398,7 @@ If you use PyTorch Viz 3D in your research, please cite:
 }
 ```
 
-## 📈 Roadmap
+## Roadmap
 
 ### Near Term (v1.0)
 - [ ] **TensorBoard integration** for training visualization
@@ -1418,7 +1418,7 @@ If you use PyTorch Viz 3D in your research, please cite:
 - [ ] **Collaborative** model analysis
 - [ ] **Cloud-based** visualization service
 
-## 🔥 PyTorch Integration
+## PyTorch Integration
 
 This package is built specifically for PyTorch and leverages:
 
@@ -1431,4 +1431,4 @@ This package is built specifically for PyTorch and leverages:
 
 ---
 
-**Made with ❤️ for the PyTorch community** 🔥 
+**Made with love for the PyTorch community** 
