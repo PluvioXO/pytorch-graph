@@ -1,11 +1,11 @@
-# PyTorch Viz 3D
+# Torch Vis
 
 A **PyTorch-specific** package for **3D visualization of neural network architectures**. Transform your PyTorch models into stunning, interactive 3D visualizations with deep integration into the PyTorch ecosystem.
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-1.8+-red.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Documentation](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://pytorch-viz-3d.readthedocs.io/)
+[![Documentation](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://torch-vis.readthedocs.io/)
 
 ## Features
 
@@ -33,14 +33,14 @@ A **PyTorch-specific** package for **3D visualization of neural network architec
 ### Quick Install
 
 ```bash
-pip install pytorch-viz-3d
+pip install torch-vis
 ```
 
 ### Development Install
 
 ```bash
-git clone https://github.com/yourusername/pytorch-viz-3d.git
-cd pytorch-viz-3d
+git clone https://github.com/yourusername/torch-vis.git
+cd torch-vis
 pip install -e .
 ```
 
@@ -67,8 +67,8 @@ pip install pytest black flake8 mypy
 Test your installation:
 
 ```python
-import pytorch_viz
-print(pytorch_viz.__version__)
+import torch_vis
+print(torch_vis.__version__)
 ```
 
 ## Quick Start
@@ -78,7 +78,7 @@ print(pytorch_viz.__version__)
 ```python
 import torch
 import torch.nn as nn
-import pytorch_viz
+import torch_vis
 
 # Define your PyTorch model
 class SimpleCNN(nn.Module):
@@ -100,7 +100,7 @@ class SimpleCNN(nn.Module):
 model = SimpleCNN()
 
 # Visualize in 3D!
-fig = pytorch_viz.visualize(
+fig = torch_vis.visualize(
     model, 
     input_shape=(3, 32, 32),
     title="My CNN Architecture"
@@ -112,7 +112,7 @@ fig.show()
 
 ```python
 # Minimal code for quick visualization
-pytorch_viz.visualize(model, input_shape=(3, 224, 224)).show()
+torch_vis.visualize(model, input_shape=(3, 224, 224)).show()
 ```
 
 ## Advanced Usage
@@ -120,7 +120,7 @@ pytorch_viz.visualize(model, input_shape=(3, 224, 224)).show()
 ### Custom Visualization Settings
 
 ```python
-from pytorch_viz import PyTorchVisualizer
+from torch_vis import PyTorchVisualizer
 
 # Create visualizer with custom settings
 visualizer = PyTorchVisualizer(
@@ -150,7 +150,7 @@ fig = visualizer.visualize(
 
 ```python
 # Model Analysis
-analysis = pytorch_viz.analyze_model(
+analysis = torch_vis.analyze_model(
     model, 
     input_shape=(3, 224, 224),
     detailed=True
@@ -159,7 +159,7 @@ print(f"Total parameters: {analysis['basic_info']['total_parameters']:,}")
 print(f"Memory usage: {analysis['memory']['total_memory_mb']:.2f} MB")
 
 # Performance Profiling
-profiling = pytorch_viz.profile_model(
+profiling = torch_vis.profile_model(
     model,
     input_shape=(3, 224, 224),
     device='cuda',
@@ -169,17 +169,17 @@ print(f"Inference time: {profiling['mean_time_ms']:.2f} ms")
 print(f"Throughput: {profiling['fps']:.1f} FPS")
 
 # Activation Extraction
-activations = pytorch_viz.extract_activations(
+activations = torch_vis.extract_activations(
     model,
     torch.randn(1, 3, 224, 224),
     layer_names=['conv1', 'conv2']
 )
 
 # Comprehensive Report
-pytorch_viz.create_architecture_report(
+torch_vis.create_architecture_report(
     model,
     input_shape=(3, 224, 224),
-    output_path="pytorch_report.html"
+    output_path="torch_vis_report.html"
 )
 ```
 
@@ -190,7 +190,7 @@ pytorch_viz.create_architecture_report(
 models = [resnet18, resnet34, resnet50]
 names = ["ResNet-18", "ResNet-34", "ResNet-50"]
 
-fig = pytorch_viz.compare_models(
+fig = torch_vis.compare_models(
     models=models,
     names=names,
     input_shapes=[(3, 224, 224)] * 3,
@@ -296,7 +296,7 @@ visualizer = PyTorchVisualizer(layout_style='custom')
 
 #### Memory Profiling
 ```python
-analysis = pytorch_viz.analyze_model(model, input_shape=(3, 224, 224))
+analysis = torch_vis.analyze_model(model, input_shape=(3, 224, 224))
 memory_info = analysis['memory']
 
 print(f"Parameter memory: {memory_info['parameters_mb']:.2f} MB")
@@ -307,7 +307,7 @@ print(f"Peak memory usage: {memory_info['total_memory_mb']:.2f} MB")
 #### FLOP Counting
 ```python
 # Requires torchinfo or thop
-analysis = pytorch_viz.analyze_model(model, input_shape=(3, 224, 224))
+analysis = torch_vis.analyze_model(model, input_shape=(3, 224, 224))
 if 'complexity' in analysis:
     flops = analysis['complexity']['flops']
     print(f"Model FLOPs: {flops:,}")
@@ -315,7 +315,7 @@ if 'complexity' in analysis:
 
 #### Parameter Statistics
 ```python
-analysis = pytorch_viz.analyze_model(model, detailed=True)
+analysis = torch_vis.analyze_model(model, detailed=True)
 params = analysis['parameters']
 
 print(f"Total parameters: {params['statistics']['total_params']:,}")
@@ -328,11 +328,11 @@ print(f"Weight std: {params['statistics']['std']:.4f}")
 #### GPU/CPU Profiling
 ```python
 # CPU profiling
-cpu_profile = pytorch_viz.profile_model(model, input_shape, device='cpu')
+cpu_profile = torch_vis.profile_model(model, input_shape, device='cpu')
 
 # GPU profiling (if CUDA available)
 if torch.cuda.is_available():
-    gpu_profile = pytorch_viz.profile_model(model, input_shape, device='cuda')
+    gpu_profile = torch_vis.profile_model(model, input_shape, device='cuda')
     print(f"CPU time: {cpu_profile['mean_time_ms']:.2f} ms")
     print(f"GPU time: {gpu_profile['mean_time_ms']:.2f} ms")
     print(f"Speedup: {cpu_profile['mean_time_ms'] / gpu_profile['mean_time_ms']:.1f}x")
@@ -343,7 +343,7 @@ if torch.cuda.is_available():
 batch_sizes = [1, 8, 16, 32, 64]
 for batch_size in batch_sizes:
     input_shape = (batch_size, 3, 224, 224)
-    profile = pytorch_viz.profile_model(model, input_shape)
+    profile = torch_vis.profile_model(model, input_shape)
     throughput = profile['fps'] * batch_size
     print(f"Batch {batch_size}: {throughput:.1f} images/sec")
 ```
@@ -353,7 +353,7 @@ for batch_size in batch_sizes:
 #### Feature Map Extraction
 ```python
 # For CNN models
-visualizer = pytorch_viz.PyTorchVisualizer()
+visualizer = torch_vis.PyTorchVisualizer()
 feature_maps = visualizer.visualize_feature_maps(
     model,
     torch.randn(1, 3, 224, 224),
@@ -364,7 +364,7 @@ feature_maps = visualizer.visualize_feature_maps(
 
 #### Activation Statistics
 ```python
-activations = pytorch_viz.extract_activations(model, input_tensor)
+activations = torch_vis.extract_activations(model, input_tensor)
 for layer_name, activation in activations.items():
     if isinstance(activation, torch.Tensor):
         sparsity = (activation == 0).float().mean()
@@ -373,7 +373,7 @@ for layer_name, activation in activations.items():
 
 #### Gradient Analysis
 ```python
-from pytorch_viz.utils.pytorch_hooks import ActivationExtractor
+from torch_vis.utils.pytorch_hooks import ActivationExtractor
 
 extractor = ActivationExtractor(model)
 result = extractor.extract_with_gradients(input_tensor.requires_grad_(True))
@@ -437,14 +437,14 @@ fig = visualizer.visualize(
 #### Interactive HTML
 ```python
 # Export interactive visualization
-fig = pytorch_viz.visualize(model, input_shape)
+fig = torch_vis.visualize(model, input_shape)
 fig.write_html("model.html", include_plotlyjs='cdn')
 ```
 
 #### Static Images
 ```python
 # Requires kaleido: pip install kaleido
-fig = pytorch_viz.visualize(model, input_shape)
+fig = torch_vis.visualize(model, input_shape)
 fig.write_image("model.png", width=1920, height=1080, scale=2)
 fig.write_image("model.svg")  # Vector format
 fig.write_image("model.pdf")  # PDF format
@@ -453,7 +453,7 @@ fig.write_image("model.pdf")  # PDF format
 #### Comprehensive Reports
 ```python
 # Generate detailed HTML report
-pytorch_viz.create_architecture_report(
+torch_vis.create_architecture_report(
     model,
     input_shape=(3, 224, 224),
     output_path="model_report.html",
@@ -465,9 +465,9 @@ pytorch_viz.create_architecture_report(
 
 ### Main Functions
 
-#### `pytorch_viz.visualize()`
+#### `torch_vis.visualize()`
 ```python
-pytorch_viz.visualize(
+torch_vis.visualize(
     model: nn.Module,
     input_shape: Optional[Tuple[int, ...]] = None,
     title: Optional[str] = None,
@@ -494,9 +494,9 @@ pytorch_viz.visualize(
 - `device`: Device for analysis ('auto', 'cpu', 'cuda')
 - `export_path`: Auto-export path (HTML, PNG, SVG, PDF)
 
-#### `pytorch_viz.analyze_model()`
+#### `torch_vis.analyze_model()`
 ```python
-pytorch_viz.analyze_model(
+torch_vis.analyze_model(
     model: nn.Module,
     input_shape: Optional[Tuple[int, ...]] = None,
     detailed: bool = True,
@@ -532,9 +532,9 @@ pytorch_viz.analyze_model(
 }
 ```
 
-#### `pytorch_viz.profile_model()`
+#### `torch_vis.profile_model()`
 ```python
-pytorch_viz.profile_model(
+torch_vis.profile_model(
     model: nn.Module,
     input_shape: Tuple[int, ...],
     device: str = 'cpu',
@@ -555,18 +555,18 @@ pytorch_viz.profile_model(
 }
 ```
 
-#### `pytorch_viz.extract_activations()`
+#### `torch_vis.extract_activations()`
 ```python
-pytorch_viz.extract_activations(
+torch_vis.extract_activations(
     model: nn.Module,
     input_tensor: torch.Tensor,
     layer_names: Optional[List[str]] = None
 ) -> Dict[str, torch.Tensor]
 ```
 
-#### `pytorch_viz.compare_models()`
+#### `torch_vis.compare_models()`
 ```python
-pytorch_viz.compare_models(
+torch_vis.compare_models(
     models: List[nn.Module],
     names: Optional[List[str]] = None,
     input_shapes: Optional[List[Tuple[int, ...]]] = None,
@@ -618,14 +618,14 @@ visualizer.set_spacing(spacing)
 ```python
 import torch
 import torchvision.models as models
-import pytorch_viz
+import torch_vis
 
 # Load pre-trained ResNet
 model = models.resnet50(pretrained=True)
 model.eval()
 
 # Create comprehensive visualization
-visualizer = pytorch_viz.PyTorchVisualizer(
+visualizer = torch_vis.PyTorchVisualizer(
     layout_style='spring',
     theme='plotly_dark',
     spacing=2.5
@@ -644,7 +644,7 @@ fig = visualizer.visualize(
 fig.show()
 
 # Generate detailed report
-pytorch_viz.create_architecture_report(
+torch_vis.create_architecture_report(
     model,
     input_shape=(3, 224, 224),
     output_path="resnet50_report.html"
@@ -655,7 +655,7 @@ pytorch_viz.create_architecture_report(
 ```python
 import torch
 import torch.nn as nn
-import pytorch_viz
+import torch_vis
 
 class CustomCNN(nn.Module):
     def __init__(self, num_classes=10):
@@ -702,7 +702,7 @@ class CustomCNN(nn.Module):
 model = CustomCNN()
 
 # Comprehensive analysis
-analysis = pytorch_viz.analyze_model(
+analysis = torch_vis.analyze_model(
     model,
     input_shape=(3, 32, 32),
     detailed=True
@@ -714,7 +714,7 @@ print(f"Memory: {analysis['memory']['total_memory_mb']:.2f} MB")
 print(f"Layers: {analysis['basic_info']['total_layers']}")
 
 # Performance profiling
-profile = pytorch_viz.profile_model(
+profile = torch_vis.profile_model(
     model,
     input_shape=(3, 32, 32),
     device='cpu',
@@ -726,7 +726,7 @@ print(f"Inference time: {profile['mean_time_ms']:.2f} ± {profile['std_time_ms']
 print(f"Throughput: {profile['fps']:.1f} FPS")
 
 # Visualization
-fig = pytorch_viz.visualize(
+fig = torch_vis.visualize(
     model,
     input_shape=(3, 32, 32),
     title="Custom CNN - CIFAR-10 Classifier",
@@ -740,7 +740,7 @@ fig.show()
 ```python
 import torch
 import torch.nn as nn
-import pytorch_viz
+import torch_vis
 
 class SimpleTransformer(nn.Module):
     def __init__(self, vocab_size=10000, d_model=512, nhead=8, num_layers=6):
@@ -776,7 +776,7 @@ model = SimpleTransformer()
 
 # Note: For transformers, we use sequence length instead of image dimensions
 # input_shape represents (sequence_length,) for embedding input
-fig = pytorch_viz.visualize(
+fig = torch_vis.visualize(
     model,
     input_shape=(512,),  # Sequence length
     title="Transformer Encoder Architecture",
@@ -790,7 +790,7 @@ fig.show()
 ```python
 import torch
 import torchvision.models as models
-import pytorch_viz
+import torch_vis
 
 # Load different models
 models_to_compare = [
@@ -802,7 +802,7 @@ models_to_compare = [
 model_names = ["ResNet-18", "ResNet-34", "ResNet-50"]
 
 # Compare architectures
-comparison_fig = pytorch_viz.compare_models(
+comparison_fig = torch_vis.compare_models(
     models=models_to_compare,
     names=model_names,
     input_shapes=[(3, 224, 224)] * 3,
@@ -812,8 +812,8 @@ comparison_fig.show()
 
 # Detailed comparison analysis
 for name, model in zip(model_names, models_to_compare):
-    analysis = pytorch_viz.analyze_model(model, (3, 224, 224))
-    profile = pytorch_viz.profile_model(model, (3, 224, 224), num_runs=10)
+    analysis = torch_vis.analyze_model(model, (3, 224, 224))
+    profile = torch_vis.profile_model(model, (3, 224, 224), num_runs=10)
     
     print(f"\n=== {name} ===")
     print(f"Parameters: {analysis['basic_info']['total_parameters']:,}")
@@ -828,7 +828,7 @@ for name, model in zip(model_names, models_to_compare):
 
 #### Custom Hook Functions
 ```python
-from pytorch_viz.utils.pytorch_hooks import HookManager
+from torch_vis.utils.pytorch_hooks import HookManager
 
 # Create custom hook manager
 hook_manager = HookManager()
@@ -856,7 +856,7 @@ hook_manager.remove_all_hooks()
 
 #### Gradient Analysis
 ```python
-from pytorch_viz.utils.pytorch_hooks import ActivationExtractor
+from torch_vis.utils.pytorch_hooks import ActivationExtractor
 
 # Extract gradients during backward pass
 extractor = ActivationExtractor(model)
@@ -880,7 +880,7 @@ for layer_name, grad in gradients.items():
 #### Memory Optimization
 ```python
 # Analyze memory bottlenecks
-analysis = pytorch_viz.analyze_model(model, input_shape, detailed=True)
+analysis = torch_vis.analyze_model(model, input_shape, detailed=True)
 memory_by_layer = analysis['memory']['activation_sizes_by_layer']
 
 # Find memory-intensive layers
@@ -913,7 +913,7 @@ except ImportError:
 
 #### Training Loop Integration
 ```python
-import pytorch_viz
+import torch_vis
 from torch.utils.tensorboard import SummaryWriter
 
 class TrainingVisualizer:
@@ -924,7 +924,7 @@ class TrainingVisualizer:
         
     def log_architecture(self, epoch=0):
         """Log model architecture to TensorBoard"""
-        fig = pytorch_viz.visualize(
+        fig = torch_vis.visualize(
             self.model,
             self.input_shape,
             title=f"Model Architecture - Epoch {epoch}"
@@ -936,7 +936,7 @@ class TrainingVisualizer:
         
     def log_activations(self, input_batch, epoch):
         """Log activation statistics"""
-        activations = pytorch_viz.extract_activations(
+        activations = torch_vis.extract_activations(
             self.model,
             input_batch[0:1],  # Single sample
         )
@@ -951,7 +951,7 @@ class TrainingVisualizer:
     
     def profile_epoch(self, epoch):
         """Profile model performance"""
-        profile = pytorch_viz.profile_model(
+        profile = torch_vis.profile_model(
             self.model,
             self.input_shape,
             num_runs=10
@@ -980,26 +980,26 @@ for epoch in range(num_epochs):
 
 #### Installation Issues
 
-**Problem**: `pip install pytorch-viz-3d` fails
+**Problem**: `pip install torch-vis` fails
 ```bash
 # Solution 1: Update pip
 pip install --upgrade pip
-pip install pytorch-viz-3d
+pip install torch-vis
 
 # Solution 2: Use conda
 conda install pytorch torchvision
-pip install pytorch-viz-3d
+pip install torch-vis
 
 # Solution 3: Install from source
-git clone https://github.com/yourusername/pytorch-viz-3d.git
-cd pytorch-viz-3d
+git clone https://github.com/yourusername/torch-vis.git
+cd torch-vis
 pip install -e .
 ```
 
 **Problem**: Missing dependencies
 ```bash
 # Install all optional dependencies
-pip install pytorch-viz-3d[dev,docs,examples]
+pip install torch-vis[dev,docs,examples]
 
 # Or install manually
 pip install torchinfo torchsummary thop kaleido
@@ -1010,7 +1010,7 @@ pip install torchinfo torchsummary thop kaleido
 **Problem**: Empty or incomplete visualizations
 ```python
 # Solution: Ensure input_shape is provided
-fig = pytorch_viz.visualize(
+fig = torch_vis.visualize(
     model, 
     input_shape=(3, 224, 224),  # Required for detailed analysis
     device='cpu'  # Specify device explicitly
@@ -1020,7 +1020,7 @@ fig = pytorch_viz.visualize(
 **Problem**: Model parsing fails
 ```python
 # Solution: Validate model first
-warnings = pytorch_viz.PyTorchVisualizer().parser.validate_model(model)
+warnings = torch_vis.PyTorchVisualizer().parser.validate_model(model)
 for warning in warnings:
     print(f"Warning: {warning}")
 
@@ -1033,7 +1033,7 @@ model.eval()
 **Problem**: Slow visualization for large models
 ```python
 # Solution: Disable expensive features
-fig = pytorch_viz.visualize(
+fig = torch_vis.visualize(
     model,
     input_shape=input_shape,
     show_activations=False,  # Disable activation analysis
@@ -1045,7 +1045,7 @@ fig = pytorch_viz.visualize(
 **Problem**: CUDA out of memory during profiling
 ```python
 # Solution: Use smaller batch size or CPU
-profile = pytorch_viz.profile_model(
+profile = torch_vis.profile_model(
     model,
     input_shape=input_shape,
     device='cpu',  # Use CPU instead of GPU
@@ -1081,13 +1081,13 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 # This will show detailed parsing and analysis information
-fig = pytorch_viz.visualize(model, input_shape)
+fig = torch_vis.visualize(model, input_shape)
 ```
 
 #### Check Model Compatibility
 ```python
 # Validate model structure
-from pytorch_viz.core.parser import PyTorchModelParser
+from torch_vis.core.parser import PyTorchModelParser
 
 parser = PyTorchModelParser()
 warnings = parser.validate_model(model)
@@ -1111,7 +1111,7 @@ if torch.cuda.is_available():
     print(f"GPU memory before: {torch.cuda.memory_allocated() / 1024**2:.2f} MB")
 
 # Run analysis
-analysis = pytorch_viz.analyze_model(model, input_shape)
+analysis = torch_vis.analyze_model(model, input_shape)
 
 if torch.cuda.is_available():
     print(f"GPU memory after: {torch.cuda.memory_allocated() / 1024**2:.2f} MB")
@@ -1166,19 +1166,19 @@ class ResidualBlock(nn.Module):
 1. **Start Simple**: Begin with basic visualization
 ```python
 # Step 1: Basic visualization
-fig = pytorch_viz.visualize(model, input_shape)
+fig = torch_vis.visualize(model, input_shape)
 fig.show()
 
 # Step 2: Add details
-fig = pytorch_viz.visualize(
+fig = torch_vis.visualize(
     model, input_shape,
     show_parameters=True,
     show_connections=True
 )
 
 # Step 3: Full analysis
-analysis = pytorch_viz.analyze_model(model, input_shape, detailed=True)
-pytorch_viz.create_architecture_report(model, input_shape, "report.html")
+analysis = torch_vis.analyze_model(model, input_shape, detailed=True)
+torch_vis.create_architecture_report(model, input_shape, "report.html")
 ```
 
 2. **Iterative Development**: Use visualization during development
@@ -1188,15 +1188,15 @@ def develop_model():
     
     # Start with simple model
     model_v1 = SimpleCNN()
-    fig1 = pytorch_viz.visualize(model_v1, input_shape)
+    fig1 = torch_vis.visualize(model_v1, input_shape)
     fig1.show()
     
     # Add complexity
     model_v2 = ImprovedCNN()
-    fig2 = pytorch_viz.visualize(model_v2, input_shape)
+    fig2 = torch_vis.visualize(model_v2, input_shape)
     
     # Compare versions
-    comparison = pytorch_viz.compare_models(
+    comparison = torch_vis.compare_models(
         [model_v1, model_v2],
         ["Simple", "Improved"],
         [input_shape, input_shape]
@@ -1210,11 +1210,11 @@ def monitor_performance(model, input_shape):
     """Monitor model performance across development"""
     
     # Baseline profiling
-    baseline = pytorch_viz.profile_model(model, input_shape)
+    baseline = torch_vis.profile_model(model, input_shape)
     
     # After optimization
     model_optimized = optimize_model(model)
-    optimized = pytorch_viz.profile_model(model_optimized, input_shape)
+    optimized = torch_vis.profile_model(model_optimized, input_shape)
     
     print(f"Speedup: {baseline['mean_time_ms'] / optimized['mean_time_ms']:.2f}x")
     print(f"Memory reduction: {baseline.get('peak_memory_mb', 0) - optimized.get('peak_memory_mb', 0):.2f} MB")
@@ -1224,7 +1224,7 @@ def monitor_performance(model, input_shape):
 
 1. **Interactive Reports**: For detailed analysis
 ```python
-pytorch_viz.create_architecture_report(
+torch_vis.create_architecture_report(
     model,
     input_shape,
     "detailed_report.html",
@@ -1234,7 +1234,7 @@ pytorch_viz.create_architecture_report(
 
 2. **Publication Figures**: High-quality static images
 ```python
-fig = pytorch_viz.visualize(
+fig = torch_vis.visualize(
     model, input_shape,
     title="Model Architecture",
     theme='plotly_white'  # Better for publications
@@ -1250,7 +1250,7 @@ fig.write_image(
 3. **Presentations**: Simplified views
 ```python
 # For presentations, use simpler layouts
-fig = pytorch_viz.visualize(
+fig = torch_vis.visualize(
     model, input_shape,
     layout_style='circular',
     show_connections=False,  # Cleaner look
@@ -1267,8 +1267,8 @@ We welcome contributions! Here's how to get started:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/pytorch-viz-3d.git
-cd pytorch-viz-3d
+git clone https://github.com/yourusername/torch-vis.git
+cd torch-vis
 
 # Create virtual environment
 python -m venv venv
@@ -1287,13 +1287,13 @@ We use black for code formatting and flake8 for linting:
 
 ```bash
 # Format code
-black pytorch_viz/
+black torch_vis/
 
 # Check linting
-flake8 pytorch_viz/
+flake8 torch_vis/
 
 # Type checking
-mypy pytorch_viz/
+mypy torch_vis/
 ```
 
 ### Testing
@@ -1303,7 +1303,7 @@ mypy pytorch_viz/
 pytest tests/
 
 # Run with coverage
-pytest --cov=pytorch_viz tests/
+pytest --cov=torch_vis tests/
 
 # Run specific test
 pytest tests/test_visualizer.py::test_basic_visualization
@@ -1313,7 +1313,7 @@ pytest tests/test_visualizer.py::test_basic_visualization
 
 1. **New Layer Support**: Add to `layer_info.py`
 ```python
-# In pytorch_viz/utils/layer_info.py
+# In torch_vis/utils/layer_info.py
 def extract_pytorch_layer_info(module, name, input_shape, output_shape):
     # Add new layer type handling
     if isinstance(module, YourNewLayerType):
@@ -1326,7 +1326,7 @@ def extract_pytorch_layer_info(module, name, input_shape, output_shape):
 
 2. **New Renderers**: Implement renderer interface
 ```python
-# In pytorch_viz/renderers/your_renderer.py
+# In torch_vis/renderers/your_renderer.py
 class YourRenderer:
     def render(self, layers, connections, **kwargs):
         # Implementation
@@ -1335,7 +1335,7 @@ class YourRenderer:
 
 3. **New Analysis Features**: Extend `ModelAnalyzer`
 ```python
-# In pytorch_viz/utils/model_analyzer.py
+# In torch_vis/utils/model_analyzer.py
 class ModelAnalyzer:
     def your_new_analysis(self, model, input_shape):
         # Implementation
@@ -1375,9 +1375,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Additional Resources
 
 ### Documentation
-- [API Reference](https://pytorch-viz-3d.readthedocs.io/en/latest/api/)
-- [Tutorials](https://pytorch-viz-3d.readthedocs.io/en/latest/tutorials/)
-- [Examples Gallery](https://pytorch-viz-3d.readthedocs.io/en/latest/gallery/)
+- [API Reference](https://torch-vis.readthedocs.io/en/latest/api/)
+- [Tutorials](https://torch-vis.readthedocs.io/en/latest/tutorials/)
+- [Examples Gallery](https://torch-vis.readthedocs.io/en/latest/gallery/)
 
 ### Related Projects
 - [PyTorch](https://pytorch.org/) - Deep learning framework
@@ -1387,14 +1387,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### Citation
 
-If you use PyTorch Viz 3D in your research, please cite:
+If you use Torch Vis in your research, please cite:
 
 ```bibtex
-@software{pytorch_viz_3d,
-  title={PyTorch Viz 3D: Interactive 3D Visualization for PyTorch Neural Networks},
+@software{torch_vis,
+  title={Torch Vis: Interactive 3D Visualization for PyTorch Neural Networks},
   author={Your Name},
   year={2024},
-  url={https://github.com/yourusername/pytorch-viz-3d}
+  url={https://github.com/yourusername/torch-vis}
 }
 ```
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-PyTorch-Specific Example - PyTorch Viz 3D
+PyTorch-Specific Example - Torch Vis
 
 This example demonstrates the PyTorch-specific features of the visualization package.
 """
@@ -10,7 +10,7 @@ warnings.filterwarnings('ignore')
 
 def pytorch_visualization_demo():
     """Demonstrate PyTorch-specific visualization features."""
-    print("🔥 PyTorch Viz 3D - PyTorch-Specific Demo")
+    print("Torch Vis - PyTorch-Specific Demo")
     print("=" * 60)
     
     try:
@@ -19,7 +19,7 @@ def pytorch_visualization_demo():
         print("✅ PyTorch is available!")
         
         # Import our PyTorch-specific visualization package
-        import pytorch_viz
+        import torch_vis
         
         # Define a more complex PyTorch model with modern components
         class ModernCNN(nn.Module):
@@ -67,10 +67,10 @@ def pytorch_visualization_demo():
         
         # 1. Basic Visualization
         print("\n🎨 Creating basic 3D visualization...")
-        fig = pytorch_viz.visualize(
+        fig = torch_vis.visualize(
             model,
             input_shape=(3, 224, 224),
-            title="🔥 Modern CNN Architecture - ImageNet Classifier",
+            title="Modern CNN Architecture - ImageNet Classifier",
             show_connections=True,
             show_labels=True,
             device='cpu'
@@ -79,7 +79,7 @@ def pytorch_visualization_demo():
         
         # 2. Advanced Analysis
         print("\n🔍 Performing comprehensive model analysis...")
-        analysis = pytorch_viz.analyze_model(
+        analysis = torch_vis.analyze_model(
             model,
             input_shape=(3, 224, 224),
             detailed=True,
@@ -111,7 +111,7 @@ def pytorch_visualization_demo():
         # 3. Performance Profiling
         print("\n⚡ Profiling model performance...")
         try:
-            profiling = pytorch_viz.profile_model(
+            profiling = torch_vis.profile_model(
                 model,
                 input_shape=(3, 224, 224),
                 device='cpu',
@@ -131,7 +131,7 @@ def pytorch_visualization_demo():
         print("\n🧠 Analyzing model activations...")
         try:
             dummy_input = torch.randn(1, 3, 224, 224)
-            activations = pytorch_viz.extract_activations(
+            activations = torch_vis.extract_activations(
                 model,
                 dummy_input,
                 layer_names=['conv1', 'conv2', 'conv3']
@@ -148,7 +148,7 @@ def pytorch_visualization_demo():
         
         # 5. Advanced Visualization with PyTorch Features
         print("\n🎨 Creating advanced visualization with PyTorch features...")
-        visualizer = pytorch_viz.PyTorchVisualizer(
+        visualizer = torch_vis.PyTorchVisualizer(
             layout_style='hierarchical',
             theme='plotly_dark',
             spacing=2.5,
@@ -159,7 +159,7 @@ def pytorch_visualization_demo():
         advanced_fig = visualizer.visualize(
             model,
             input_shape=(3, 224, 224),
-            title="🚀 Advanced PyTorch CNN - With Performance Analysis",
+            title="Advanced PyTorch CNN - With Performance Analysis",
             show_connections=True,
             show_labels=True,
             show_parameters=True,
@@ -172,12 +172,12 @@ def pytorch_visualization_demo():
         # 6. Generate Comprehensive Report
         print("\n📄 Generating comprehensive architecture report...")
         try:
-            pytorch_viz.create_architecture_report(
+            torch_vis.create_architecture_report(
                 model,
                 input_shape=(3, 224, 224),
-                output_path="pytorch_architecture_report.html"
+                output_path="torch_vis_architecture_report.html"
             )
-            print("📁 Report saved as 'pytorch_architecture_report.html'")
+            print("📁 Report saved as 'torch_vis_architecture_report.html'")
         except Exception as e:
             print(f"   ⚠️  Report generation failed: {e}")
         
@@ -192,7 +192,7 @@ def pytorch_visualization_demo():
             print(f"   ⚠️  Optimization analysis failed: {e}")
         
         print(f"\n🎉 PyTorch-specific demo completed successfully!")
-        print("\n🔥 PyTorch-Specific Features Demonstrated:")
+        print("\nPyTorch-Specific Features Demonstrated:")
         print("   • Comprehensive model analysis with memory profiling")
         print("   • Performance profiling with timing statistics")
         print("   • Activation extraction and analysis")
@@ -207,12 +207,12 @@ def pytorch_visualization_demo():
         print("❌ PyTorch not available.")
         print("   Install with: pip install torch torchvision")
         print("\n📝 What this demo would show with PyTorch installed:")
-        print("   • 🔥 PyTorch-native model parsing with hooks")
-        print("   • ⚡ GPU/CPU performance profiling")
-        print("   • 🧠 Intermediate activation extraction")
-        print("   • 📊 Memory usage analysis")
-        print("   • 🎨 Interactive 3D architecture visualization")
-        print("   • 📄 Comprehensive architecture reports")
+        print("   • PyTorch-native model parsing with hooks")
+        print("   • GPU/CPU performance profiling")
+        print("   • Intermediate activation extraction")
+        print("   • Memory usage analysis")
+        print("   • Interactive 3D architecture visualization")
+        print("   • Comprehensive architecture reports")
         return False
     except Exception as e:
         print(f"❌ Error in PyTorch demo: {e}")
@@ -221,35 +221,35 @@ def pytorch_visualization_demo():
 def show_pytorch_features():
     """Show what makes this package PyTorch-specific."""
     print("\n" + "=" * 60)
-    print("🔥 PyTorch-Specific Features")
+    print("PyTorch-Specific Features")
     print("=" * 60)
     
     features = [
-        ("🎯 Native PyTorch Integration", [
+        ("Native PyTorch Integration", [
             "Built specifically for torch.nn.Module",
             "Uses PyTorch hooks for deep analysis",
             "Automatic device detection and handling",
             "Support for PyTorch-specific layer types"
         ]),
-        ("⚡ Advanced Performance Profiling", [
+        ("Advanced Performance Profiling", [
             "CUDA-aware timing with synchronization",
             "Memory profiling with peak usage tracking",
             "FLOP counting using torchinfo",
             "Batch size impact analysis"
         ]),
-        ("🧠 Activation & Gradient Analysis", [
+        ("Activation & Gradient Analysis", [
             "Hook-based activation extraction",
             "Feature map visualization for CNNs",
             "Gradient flow analysis",
             "Activation sparsity metrics"
         ]),
-        ("📊 Comprehensive Model Analysis", [
+        ("Comprehensive Model Analysis", [
             "Layer-wise parameter statistics",
             "Memory usage breakdown by layer",
             "Architecture pattern detection",
             "Training mode awareness"
         ]),
-        ("🛠️ PyTorch Ecosystem Tools", [
+        ("PyTorch Ecosystem Tools", [
             "Integration with torchinfo and torchsummary",
             "torch.fx computational graph analysis",
             "torch.profiler performance profiling",
@@ -262,14 +262,14 @@ def show_pytorch_features():
         for item in feature_list:
             print(f"   • {item}")
     
-    print(f"\n💡 Usage Examples:")
+    print(f"\nUsage Examples:")
     
     examples = [
-        ("Basic Visualization", "pytorch_viz.visualize(model, input_shape=(3, 224, 224))"),
-        ("Performance Profiling", "pytorch_viz.profile_model(model, input_shape, device='cuda')"),
-        ("Activation Extraction", "pytorch_viz.extract_activations(model, input_tensor)"),
-        ("Model Analysis", "pytorch_viz.analyze_model(model, input_shape, detailed=True)"),
-        ("Architecture Report", "pytorch_viz.create_architecture_report(model, input_shape)")
+        ("Basic Visualization", "torch_vis.visualize(model, input_shape=(3, 224, 224))"),
+        ("Performance Profiling", "torch_vis.profile_model(model, input_shape, device='cuda')"),
+        ("Activation Extraction", "torch_vis.extract_activations(model, input_tensor)"),
+        ("Model Analysis", "torch_vis.analyze_model(model, input_shape, detailed=True)"),
+        ("Architecture Report", "torch_vis.create_architecture_report(model, input_shape)")
     ]
     
     for name, code in examples:
@@ -281,11 +281,11 @@ def main():
     success = pytorch_visualization_demo()
     show_pytorch_features()
     
-    print(f"\n🚀 Ready to visualize your PyTorch models!")
+    print(f"\nReady to visualize your PyTorch models!")
     if success:
-        print("   📁 Check 'pytorch_architecture_report.html' for the generated report")
-    print("   📖 Docs: https://github.com/yourusername/pytorch-viz-3d")
-    print("   💾 Install: pip install pytorch-viz-3d")
+        print("   📁 Check 'torch_vis_architecture_report.html' for the generated report")
+    print("   📖 Docs: https://github.com/yourusername/torch-vis")
+    print("   💾 Install: pip install torch-vis")
 
 if __name__ == "__main__":
     main() 
