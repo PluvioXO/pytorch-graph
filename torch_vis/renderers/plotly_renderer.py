@@ -88,7 +88,7 @@ class PlotlyRenderer:
         
         return fig
     
-    def _add_layer_nodes(self, fig: go.Figure, layers: List[LayerInfo], show_labels: bool):
+    def _add_layer_nodes(self, fig, layers: List[LayerInfo], show_labels: bool):
         """Add layer nodes to the figure."""
         # Group layers by type for legend
         layer_groups = {}
@@ -156,7 +156,7 @@ class PlotlyRenderer:
                 showlegend=True
             ))
     
-    def _add_connections(self, fig: go.Figure, layers: List[LayerInfo], 
+    def _add_connections(self, fig, layers: List[LayerInfo], 
                         connections: Dict[str, List[str]]):
         """Add connections between layers."""
         # Create layer position lookup
@@ -199,7 +199,7 @@ class PlotlyRenderer:
                 hoverinfo='skip'
             ))
     
-    def _update_layout(self, fig: go.Figure, title: str):
+    def _update_layout(self, fig, title: str):
         """Update figure layout and styling."""
         fig.update_layout(
             title=dict(
@@ -297,8 +297,12 @@ class PlotlyRenderer:
         except Exception as e:
             warnings.warn(f"Image export failed: {e}. Try installing kaleido: pip install kaleido")
     
-    def create_comparison_figure(self, model_figures: List[Tuple[str, go.Figure]]) -> go.Figure:
+    def create_comparison_figure(self, model_figures):
         """Create a subplot figure comparing multiple models."""
+        if not PLOTLY_AVAILABLE:
+            print("Plotly not available - cannot create comparison figure")
+            return None
+            
         num_models = len(model_figures)
         if num_models == 0:
             return go.Figure()

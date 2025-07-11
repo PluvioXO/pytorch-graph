@@ -38,11 +38,15 @@ try:
     from .renderers.plotly_renderer import PlotlyRenderer
 except ImportError:
     warnings.warn("Plotly renderer not available. Install plotly for 3D visualization.")
+except (NameError, AttributeError):
+    warnings.warn("Plotly renderer not available due to missing dependencies.")
 
 try:
     from .renderers.plotly_renderer import MatplotlibRenderer
 except ImportError:
     warnings.warn("Matplotlib renderer not available.")
+except AttributeError:
+    warnings.warn("Matplotlib renderer not available due to missing dependencies.")
 
 # Main API functions (require PyTorch)
 def visualize(model, input_shape=None, renderer='plotly', **kwargs):
