@@ -1,4 +1,4 @@
-# Torch Vis
+# PyTorch Graph
 
 **Enhanced PyTorch neural network architecture visualization with professional flowchart diagrams**. Transform your PyTorch models into beautiful, informative flowchart visualizations with comprehensive layer analysis.
 
@@ -21,16 +21,16 @@
 ## Installation
 
 ```bash
-pip install torch-vis
+pip install pytorch-graph
 ```
 
 ### Optional Dependencies
 ```bash
 # For enhanced features
-pip install torch-vis[full]
+pip install pytorch-graph[full]
 
 # For development
-pip install torch-vis[dev]
+pip install pytorch-graph[dev]
 ```
 
 ## Quick Start
@@ -122,7 +122,7 @@ torch_vis.generate_architecture_diagram(
 analysis = torch_vis.analyze_model(model, input_shape=(1, 784), detailed=True)
 ```
 
-## What Makes Torch Vis Special
+## What Makes PyTorch Graph Special
 
 ### Enhanced Information Display
 - **Parameter Counts**: Exact count per layer
@@ -183,4 +183,4 @@ torch_vis.generate_architecture_diagram(
 )
 ```
 
-**Torch Vis** - Making PyTorch model visualization simple, beautiful, and informative! 
+**PyTorch Graph** - Making PyTorch model visualization simple, beautiful, and informative! 

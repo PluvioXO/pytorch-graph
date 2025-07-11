@@ -4,10 +4,10 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="torch-graph",
-    version="0.2.0",
-    author="Torch Vis Team",
-    author_email="contact@torchvis.com",
+    name="pytorch-graph",
+    version="0.2.1",
+    author="Max",
+    author_email="max@ahmresearch.com",
     description="Enhanced PyTorch neural network architecture visualization with flowchart diagrams",
     long_description=long_description,
     long_description_content_type="text/markdown",
