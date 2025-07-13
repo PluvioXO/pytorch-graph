@@ -2,14 +2,14 @@ Metadata-Version: 2.4
 Name: pytorch-graph
 Version: 0.2.0
 Summary: Enhanced PyTorch neural network architecture visualization with flowchart diagrams
-Home-page: https://github.com/pluvioxo/torch-vis
-Author: Torch Vis Team
+Home-page: https://github.com/pluvioxo/pytorch-graph
+Author: Max
 Author-email: Torch Vis Team <contact@torchvis.com>
 License: MIT
-Project-URL: Homepage, https://github.com/pluvioxo/torch-vis
-Project-URL: Bug Tracker, https://github.com/pluvioxo/torch-vis/issues
-Project-URL: Documentation, https://torch-vis.readthedocs.io/
-Project-URL: Source Code, https://github.com/pluvioxo/torch-vis
+Project-URL: Homepage, https://github.com/pluvioxo/pytorch-graph
+Project-URL: Bug Tracker, https://github.com/pluvioxo/pytorch-graph/issues
+Project-URL: Documentation, https://pytorch-graph.readthedocs.io/
+Project-URL: Source Code, https://github.com/pluvioxo/pytorch-graph
 Keywords: pytorch,neural-network,visualization,flowchart,architecture,diagram,machine-learning,deep-learning
 Classifier: Development Status :: 4 - Beta
 Classifier: Intended Audience :: Developers

@@ -72,10 +72,10 @@ examples = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/pluvioxo/torch-vis"
-"Bug Tracker" = "https://github.com/pluvioxo/torch-vis/issues"
-Documentation = "https://torch-vis.readthedocs.io/"
-"Source Code" = "https://github.com/pluvioxo/torch-vis"
+Homepage = "https://github.com/pluvioxo/pytorch-graph"
+"Bug Tracker" = "https://github.com/pluvioxo/pytorch-graph/issues"
+Documentation = "https://pytorch-graph.readthedocs.io/"
+"Source Code" = "https://github.com/pluvioxo/pytorch-graph"
 
 [tool.setuptools]
 packages = {find = {}}

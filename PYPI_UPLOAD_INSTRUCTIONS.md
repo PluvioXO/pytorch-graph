@@ -1,12 +1,12 @@
-# PyPI Upload Instructions for torch-vis
+# PyPI Upload Instructions for pytorch-graph
 
 ## Package Status: Ready for PyPI Upload
 
-The `torch-vis` package has been successfully prepared for PyPI publication with all necessary files and configurations.
+The `pytorch-graph` package has been successfully prepared for PyPI publication with all necessary files and configurations.
 
 ## Package Details
 
-- **Name**: `torch-vis`
+- **Name**: `pytorch-graph`
 - **Version**: `0.2.0`
 - **Description**: Enhanced PyTorch neural network architecture visualization with flowchart diagrams
 - **License**: MIT
@@ -15,8 +15,8 @@ The `torch-vis` package has been successfully prepared for PyPI publication with
 ## Files Created
 
 ### Distribution Files (Ready for Upload)
-- `dist/torch_vis-0.2.0-py3-none-any.whl` (39KB) - Wheel distribution
-- `dist/torch_vis-0.2.0.tar.gz` (35KB) - Source distribution
+- `dist/pytorch_graph-0.2.0-py3-none-any.whl` (39KB) - Wheel distribution
+- `dist/pytorch_graph-0.2.0.tar.gz` (35KB) - Source distribution
 
 ### Package Configuration
 - `setup.py` - Package metadata and dependencies
@@ -39,7 +39,7 @@ The `torch-vis` package has been successfully prepared for PyPI publication with
 python3 -m twine upload --repository testpypi dist/*
 
 # Test install from Test PyPI
-pip install --index-url https://test.pypi.org/simple/ torch-vis
+pip install --index-url https://test.pypi.org/simple/ pytorch-graph
 ```
 
 ### 2. Production PyPI Upload
@@ -48,7 +48,7 @@ pip install --index-url https://test.pypi.org/simple/ torch-vis
 python3 -m twine upload dist/*
 
 # Verify installation
-pip install torch-vis
+pip install pytorch-graph
 ```
 
 ## PyPI Account Requirements
@@ -105,9 +105,9 @@ torch_vis.generate_architecture_diagram(model, input_shape, "diagram.png")
 - `pandas>=1.2.0`
 
 ### Optional Extras
-- `torch-vis[full]` - All enhanced features
-- `torch-vis[dev]` - Development tools
-- `torch-vis[docs]` - Documentation building
+- `pytorch-graph[full]` - All enhanced features
+- `pytorch-graph[dev]` - Development tools
+- `pytorch-graph[docs]` - Documentation building
 
 ## Version History
 

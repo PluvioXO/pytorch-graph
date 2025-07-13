@@ -11,11 +11,11 @@ setup(
     description="Enhanced PyTorch neural network architecture visualization with flowchart diagrams",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/pluvioxo/torch-vis",
+    url="https://github.com/pluvioxo/pytorch-graph",
     project_urls={
-        "Bug Tracker": "https://github.com/pluvioxo/torch-vis/issues",
-        "Documentation": "https://torch-vis.readthedocs.io/",
-        "Source Code": "https://github.com/pluvioxo/torch-vis",
+        "Bug Tracker": "https://github.com/pluvioxo/pytorch-graph/issues",
+        "Documentation": "https://pytorch-graph.readthedocs.io/",
+        "Source Code": "https://github.com/pluvioxo/pytorch-graph",
     },
     packages=find_packages(),
     classifiers=[
