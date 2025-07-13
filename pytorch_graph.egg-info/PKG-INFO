@@ -4,7 +4,7 @@ Version: 0.2.0
 Summary: Enhanced PyTorch neural network architecture visualization with flowchart diagrams
 Home-page: https://github.com/pluvioxo/pytorch-graph
 Author: Max
-Author-email: Torch Vis Team <contact@torchvis.com>
+Author-email: PyTorch Graph Team <contact@pytorch-graph.com>
 License: MIT
 Project-URL: Homepage, https://github.com/pluvioxo/pytorch-graph
 Project-URL: Bug Tracker, https://github.com/pluvioxo/pytorch-graph/issues
