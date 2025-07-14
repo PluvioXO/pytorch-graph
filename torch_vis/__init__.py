@@ -23,6 +23,16 @@ except ImportError:
 from .utils.layer_info import LayerInfo
 from .utils.position_calculator import PositionCalculator
 
+# Computational graph tracking (always available)
+from .utils.computational_graph import (
+    ComputationalGraphTracker, 
+    track_computational_graph, 
+    analyze_computational_graph,
+    OperationType,
+    GraphNode,
+    GraphEdge
+)
+
 # Conditional imports that require PyTorch
 if TORCH_AVAILABLE:
     try:
@@ -246,6 +256,177 @@ def generate_flowchart_diagram(model, input_shape, output_path="model_flowchart.
         format="png", style="flowchart"
     )
 
+def track_computational_graph_execution(model, input_tensor, track_memory=True, 
+                                      track_timing=True, track_tensor_ops=True):
+    """
+    Track the computational graph of a PyTorch model execution.
+    
+    This function provides detailed tracking of:
+    - Forward and backward passes through all layers
+    - Tensor operations (add, multiply, matmul, etc.)
+    - Memory usage and timing information
+    - Data flow between operations
+    
+    Args:
+        model: PyTorch model (torch.nn.Module)
+        input_tensor: Input tensor for the forward pass
+        track_memory: Whether to track memory usage
+        track_timing: Whether to track execution timing
+        track_tensor_ops: Whether to track tensor operations
+        
+    Returns:
+        ComputationalGraphTracker with the execution data
+        
+    Example:
+        >>> import torch
+        >>> import torch.nn as nn
+        >>> from torch_vis import track_computational_graph_execution
+        >>> 
+        >>> model = nn.Sequential(nn.Linear(10, 5), nn.ReLU(), nn.Linear(5, 1))
+        >>> input_tensor = torch.randn(1, 10)
+        >>> tracker = track_computational_graph_execution(model, input_tensor)
+        >>> 
+        >>> # Get summary
+        >>> summary = tracker.get_graph_summary()
+        >>> print(f"Total operations: {summary['total_nodes']}")
+        >>> 
+        >>> # Visualize the graph
+        >>> fig = tracker.visualize_graph('plotly')
+        >>> fig.show()
+    """
+    if not TORCH_AVAILABLE:
+        raise ImportError("PyTorch is required for computational graph tracking. Install with: pip install torch")
+    return track_computational_graph(model, input_tensor, track_memory, track_timing, track_tensor_ops)
+
+def analyze_computational_graph_execution(model, input_tensor, detailed=True):
+    """
+    Analyze the computational graph of a PyTorch model execution.
+    
+    This function provides comprehensive analysis of:
+    - Operation types and frequencies
+    - Layer-wise execution patterns
+    - Performance metrics (timing, memory)
+    - Data flow analysis
+    
+    Args:
+        model: PyTorch model (torch.nn.Module)
+        input_tensor: Input tensor for the forward pass
+        detailed: Whether to include detailed analysis
+        
+    Returns:
+        Dictionary containing computational graph analysis
+        
+    Example:
+        >>> import torch
+        >>> import torch.nn as nn
+        >>> from torch_vis import analyze_computational_graph_execution
+        >>> 
+        >>> model = nn.Sequential(nn.Linear(10, 5), nn.ReLU(), nn.Linear(5, 1))
+        >>> input_tensor = torch.randn(1, 10)
+        >>> analysis = analyze_computational_graph_execution(model, input_tensor)
+        >>> 
+        >>> print(f"Total operations: {analysis['summary']['total_nodes']}")
+        >>> print(f"Execution time: {analysis['summary']['execution_time']:.4f}s")
+        >>> print(f"Memory usage: {analysis['summary']['memory_usage']}")
+    """
+    if not TORCH_AVAILABLE:
+        raise ImportError("PyTorch is required for computational graph analysis. Install with: pip install torch")
+    return analyze_computational_graph(model, input_tensor, detailed)
+
+def visualize_computational_graph(model, input_tensor, renderer='plotly'):
+    """
+    Visualize the computational graph of a PyTorch model execution.
+    
+    Args:
+        model: PyTorch model (torch.nn.Module)
+        input_tensor: Input tensor for the forward pass
+        renderer: Rendering backend ('plotly' or 'matplotlib')
+        
+    Returns:
+        Visualization object (Plotly figure or Matplotlib figure)
+        
+    Example:
+        >>> import torch
+        >>> import torch.nn as nn
+        >>> from torch_vis import visualize_computational_graph
+        >>> 
+        >>> model = nn.Sequential(nn.Linear(10, 5), nn.ReLU(), nn.Linear(5, 1))
+        >>> input_tensor = torch.randn(1, 10)
+        >>> fig = visualize_computational_graph(model, input_tensor, 'plotly')
+        >>> fig.show()
+    """
+    if not TORCH_AVAILABLE:
+        raise ImportError("PyTorch is required for computational graph visualization. Install with: pip install torch")
+    
+    tracker = track_computational_graph(model, input_tensor)
+    return tracker.visualize_graph(renderer)
+
+def export_computational_graph(model, input_tensor, filepath, format='json'):
+    """
+    Export the computational graph of a PyTorch model execution to a file.
+    
+    Args:
+        model: PyTorch model (torch.nn.Module)
+        input_tensor: Input tensor for the forward pass
+        filepath: Output file path
+        format: Export format ('json')
+        
+    Returns:
+        Path to the exported file
+        
+    Example:
+        >>> import torch
+        >>> import torch.nn as nn
+        >>> from torch_vis import export_computational_graph
+        >>> 
+        >>> model = nn.Sequential(nn.Linear(10, 5), nn.ReLU(), nn.Linear(5, 1))
+        >>> input_tensor = torch.randn(1, 10)
+        >>> filepath = export_computational_graph(model, input_tensor, 'graph.json')
+        >>> print(f"Graph exported to: {filepath}")
+    """
+    if not TORCH_AVAILABLE:
+        raise ImportError("PyTorch is required for computational graph export. Install with: pip install torch")
+    
+    tracker = track_computational_graph(model, input_tensor)
+    tracker.export_graph(filepath, format)
+    return filepath
+
+def save_computational_graph_png(model, input_tensor, filepath="computational_graph.png", 
+                                width=1200, height=800, dpi=300, show_legend=True,
+                                node_size=20, font_size=10):
+    """
+    Save the computational graph as a high-quality PNG image.
+    
+    Args:
+        model: PyTorch model (torch.nn.Module)
+        input_tensor: Input tensor for the forward pass
+        filepath: Output PNG file path
+        width: Image width in pixels
+        height: Image height in pixels
+        dpi: Dots per inch for high resolution
+        show_legend: Whether to show legend
+        node_size: Size of nodes in the graph
+        font_size: Font size for labels
+        
+    Returns:
+        Path to the saved PNG file
+        
+    Example:
+        >>> import torch
+        >>> import torch.nn as nn
+        >>> from torch_vis import save_computational_graph_png
+        >>> 
+        >>> model = nn.Sequential(nn.Linear(10, 20), nn.ReLU(), nn.Linear(20, 1))
+        >>> input_tensor = torch.randn(1, 10)
+        >>> png_path = save_computational_graph_png(model, input_tensor, "graph.png")
+        >>> print(f"PNG saved to: {png_path}")
+    """
+    if not TORCH_AVAILABLE:
+        raise ImportError("PyTorch is required for computational graph PNG generation. Install with: pip install torch")
+    
+    tracker = track_computational_graph(model, input_tensor)
+    return tracker.save_graph_png(filepath, width, height, dpi, show_legend, node_size, font_size)
+
 # Public API - Build list dynamically based on available dependencies
 __all__ = [
     'LayerInfo',
@@ -261,6 +442,16 @@ __all__ = [
     'save_architecture_diagram',
     'generate_research_paper_diagram',
     'generate_flowchart_diagram',
+    # Computational graph functions
+    'track_computational_graph_execution',
+    'analyze_computational_graph_execution',
+    'visualize_computational_graph',
+    'export_computational_graph',
+    'save_computational_graph_png',
+    'ComputationalGraphTracker',
+    'OperationType',
+    'GraphNode',
+    'GraphEdge',
 ]
 
 # Add PyTorch-specific components if available
