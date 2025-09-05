@@ -1,16 +1,16 @@
-Metadata-Version: 2.4
+Metadata-Version: 2.1
 Name: pytorch-graph
-Version: 0.2.0
+Version: 0.2.1
 Summary: Enhanced PyTorch neural network architecture visualization with flowchart diagrams
 Home-page: https://github.com/pluvioxo/pytorch-graph
 Author: Max
-Author-email: PyTorch Graph Team <contact@pytorch-graph.com>
-License: MIT
-Project-URL: Homepage, https://github.com/pluvioxo/pytorch-graph
+Author-email: max@ahmresearch.com
+License: UNKNOWN
 Project-URL: Bug Tracker, https://github.com/pluvioxo/pytorch-graph/issues
 Project-URL: Documentation, https://pytorch-graph.readthedocs.io/
 Project-URL: Source Code, https://github.com/pluvioxo/pytorch-graph
-Keywords: pytorch,neural-network,visualization,flowchart,architecture,diagram,machine-learning,deep-learning
+Keywords: pytorch neural-network visualization flowchart architecture diagram machine-learning deep-learning
+Platform: UNKNOWN
 Classifier: Development Status :: 4 - Beta
 Classifier: Intended Audience :: Developers
 Classifier: Intended Audience :: Science/Research
@@ -28,42 +28,11 @@ Classifier: Topic :: Scientific/Engineering :: Visualization
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Requires-Python: >=3.8
 Description-Content-Type: text/markdown
-License-File: LICENSE
-Requires-Dist: torch>=1.8.0
-Requires-Dist: numpy>=1.19.0
-Requires-Dist: matplotlib>=3.3.0
-Requires-Dist: plotly>=5.0.0
-Requires-Dist: networkx>=2.5
-Requires-Dist: pandas>=1.2.0
 Provides-Extra: full
-Requires-Dist: torchvision>=0.9.0; extra == "full"
-Requires-Dist: scipy>=1.6.0; extra == "full"
-Requires-Dist: dash>=2.0.0; extra == "full"
-Requires-Dist: dash-bootstrap-components>=1.0.0; extra == "full"
-Requires-Dist: kaleido>=0.2.1; extra == "full"
-Requires-Dist: torchinfo>=1.6.0; extra == "full"
-Requires-Dist: torchsummary>=1.5.1; extra == "full"
 Provides-Extra: dev
-Requires-Dist: pytest>=6.0; extra == "dev"
-Requires-Dist: pytest-cov>=2.0; extra == "dev"
-Requires-Dist: black>=21.0; extra == "dev"
-Requires-Dist: flake8>=3.8; extra == "dev"
-Requires-Dist: mypy>=0.812; extra == "dev"
-Requires-Dist: jupyter>=1.0.0; extra == "dev"
-Requires-Dist: twine>=4.0.0; extra == "dev"
-Requires-Dist: build>=0.8.0; extra == "dev"
 Provides-Extra: docs
-Requires-Dist: sphinx>=4.0; extra == "docs"
-Requires-Dist: sphinx-rtd-theme>=0.5; extra == "docs"
-Requires-Dist: nbsphinx>=0.8.0; extra == "docs"
 Provides-Extra: examples
-Requires-Dist: torchvision>=0.9.0; extra == "examples"
-Requires-Dist: timm>=0.6.0; extra == "examples"
-Requires-Dist: transformers>=4.0.0; extra == "examples"
-Dynamic: author
-Dynamic: home-page
-Dynamic: license-file
-Dynamic: requires-python
+License-File: LICENSE
 
 # PyTorch Graph
 
@@ -251,3 +220,4 @@ torch_vis.generate_architecture_diagram(
 ```
 
 **PyTorch Graph** - Making PyTorch model visualization simple, beautiful, and informative! 
+
