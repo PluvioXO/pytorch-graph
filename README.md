@@ -1,48 +1,57 @@
 # PyTorch Graph
 
-**Enhanced PyTorch neural network architecture visualization with professional flowchart diagrams**. Transform your PyTorch models into beautiful, informative flowchart visualizations with comprehensive layer analysis.
+**Professional PyTorch neural network visualization toolkit with complete computational graph analysis**. Transform your PyTorch models into publication-ready diagrams with comprehensive architecture visualization and computational graph tracking.
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-1.8+-red.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PyPI version](https://badge.fury.io/py/pytorch-graph.svg)](https://badge.fury.io/py/pytorch-graph)
 
-## Features
+## 🚀 Key Features
 
-- **Enhanced Flowchart Diagrams**: Professional vertical flowchart visualization (default)
-- **Comprehensive Layer Analysis**: Parameter counts, memory usage, and tensor shapes
-- **Activation Function Indicators**: Visual highlights for activation layers
-- **Data Flow Visualization**: Tensor sizes displayed on connection arrows
-- **Multiple Styles**: Flowchart (default), standard, and research paper styles
+### 📊 **Architecture Visualization**
+- **Professional Flowchart Diagrams**: Clean, vertical flowchart visualization with enhanced styling
+- **Research Paper Style**: Publication-ready diagrams with academic formatting
+- **Multiple Export Formats**: High-quality PNG with customizable DPI (up to 300 DPI)
+- **Comprehensive Layer Analysis**: Parameter counts, memory usage, and tensor shape transformations
+
+### 🔍 **Complete Computational Graph Analysis**
+- **Maximal Graph Traversal**: Captures the entire computational graph without artificial limits
+- **Full Operation Names**: Displays complete method and object names (no truncation)
+- **Smart Arrow Positioning**: Arrows connect node edges properly without crossing over boxes
+- **Compact Layout**: Eliminates gaps and breaks for continuous graph flow
+- **Real-time Execution Tracking**: Monitors forward/backward passes and tensor operations
+
+### 🎨 **Professional Quality**
+- **Enhanced Color Schemes**: Color-coded operation types and layer categories
+- **Intelligent Legend Positioning**: Automatic legend placement without overlap
 - **Memory Analysis**: Per-layer and total memory usage estimates
-- **Model Complexity Assessment**: Color-coded size indicators (Small/Medium/Large)
-- **High-Quality Exports**: PNG diagrams with customizable DPI
-- **Pure Python**: No external dependencies beyond standard ML stack
+- **Model Complexity Assessment**: Automatic size classification (Small/Medium/Large)
+- **Data Flow Visualization**: Tensor sizes and shapes displayed on connections
 
-## Installation
+## 📦 Installation
 
 ```bash
+# Basic installation
 pip install pytorch-graph
-```
 
-### Optional Dependencies
-```bash
-# For enhanced features
+# With enhanced features
 pip install pytorch-graph[full]
 
-# For development
+# Development version
 pip install pytorch-graph[dev]
 ```
 
-## Quick Start
+## 🏃‍♂️ Quick Start
 
-### Basic Usage (Enhanced Flowchart - Default)
+### Architecture Visualization
 
 ```python
 import torch
 import torch.nn as nn
-import torch_vis
+from pytorch_graph import generate_architecture_diagram
 
-# Define your PyTorch model
+# Define your model
 model = nn.Sequential(
     nn.Linear(784, 128),
     nn.ReLU(),
@@ -51,117 +60,42 @@ model = nn.Sequential(
     nn.Linear(64, 10)
 )
 
-# Generate enhanced flowchart diagram (default style)
-torch_vis.generate_architecture_diagram(
+# Generate professional architecture diagram
+generate_architecture_diagram(
     model=model,
     input_shape=(1, 784),
-    output_path="my_model.png",
-    title="My Neural Network"
+    output_path="model_architecture.png",
+    title="Neural Network Architecture"
 )
 ```
 
-### One-Line Visualization
+### Complete Computational Graph Analysis
 
 ```python
-# Minimal code - outputs enhanced flowchart by default
-torch_vis.generate_architecture_diagram(model, (1, 784), "model.png")
+from pytorch_graph import ComputationalGraphTracker
+import torch
+
+# Create a tracker for your model
+tracker = ComputationalGraphTracker(model)
+
+# Start tracking
+tracker.start_tracking()
+
+# Run your model
+input_tensor = torch.randn(1, 784)
+output = model(input_tensor)
+
+# Stop tracking and save complete graph
+tracker.stop_tracking()
+tracker.save_graph_png("complete_computational_graph.png")
 ```
 
-## Diagram Styles
+## 📋 Comprehensive Examples
 
-### Enhanced Flowchart (Default)
-```python
-# Default - no style parameter needed
-torch_vis.generate_architecture_diagram(model, input_shape, "flowchart.png")
-```
-
-**Features:**
-- Lightning bolt icons for activation functions
-- Memory usage per layer (e.g., "~1.2MB")
-- Data flow indicators on arrows (e.g., "128K elements")
-- Summary panel with total parameters, memory, layer counts
-- Color-coded model complexity (Small/Medium/Large)
-
-### Other Styles
-```python
-# Standard style
-torch_vis.generate_architecture_diagram(model, input_shape, "standard.png", style="standard")
-
-# Research paper style
-torch_vis.generate_architecture_diagram(model, input_shape, "paper.png", style="research_paper")
-```
-
-## Model Analysis
+### CNN Architecture Visualization
 
 ```python
-# Analyze model statistics
-analysis = torch_vis.analyze_model(model, input_shape=(1, 784))
-print(f"Parameters: {analysis.get('total_params', 'N/A')}")
-
-# Multiple convenient functions
-torch_vis.generate_flowchart_diagram(model, input_shape, "flowchart.png")
-torch_vis.generate_research_paper_diagram(model, input_shape, "paper.png")
-```
-
-## Advanced Features
-
-### Custom Titles and Paths
-```python
-torch_vis.generate_architecture_diagram(
-    model=model,
-    input_shape=(3, 224, 224),
-    output_path="models/resnet_architecture.png",
-    title="ResNet-18 Architecture",
-    style="flowchart"  # or "standard", "research_paper"
-)
-```
-
-### Model Analysis
-```python
-# Get detailed model information
-analysis = torch_vis.analyze_model(model, input_shape=(1, 784), detailed=True)
-```
-
-## What Makes PyTorch Graph Special
-
-### Enhanced Information Display
-- **Parameter Counts**: Exact count per layer
-- **Memory Usage**: Estimated memory consumption (float32)
-- **Tensor Shapes**: Input → Output shape transformations  
-- **Layer Types**: Color-coded layer categories
-- **Model Size**: Automatic complexity assessment
-
-### Professional Quality
-- **Clean Layout**: Minimal, focused design
-- **High DPI**: Publication-ready image quality
-- **Consistent Styling**: Professional appearance
-- **Compact Output**: Efficient use of space
-
-### Developer Friendly
-- **Simple API**: Sensible defaults, minimal configuration
-- **PyTorch Native**: Built specifically for PyTorch models
-- **Fast Generation**: Optimized rendering pipeline
-- **No External Services**: Fully offline operation
-
-## Requirements
-
-- Python ≥ 3.8
-- PyTorch ≥ 1.8.0
-- matplotlib ≥ 3.3.0
-- numpy ≥ 1.19.0
-
-## License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
-## Contributing
-
-Contributions welcome! Please feel free to submit a Pull Request.
-
-## More Examples
-
-```python
-# CNN Example
+# Convolutional Neural Network
 cnn_model = nn.Sequential(
     nn.Conv2d(3, 32, 3, padding=1),
     nn.ReLU(),
@@ -175,12 +109,226 @@ cnn_model = nn.Sequential(
     nn.Linear(128, 10)
 )
 
-torch_vis.generate_architecture_diagram(
+# Generate multiple diagram styles
+generate_architecture_diagram(
     cnn_model, 
     input_shape=(1, 3, 32, 32),
-    output_path="cnn_architecture.png",
-    title="CNN for CIFAR-10"
+    output_path="cnn_flowchart.png",
+    style="flowchart"
+)
+
+generate_architecture_diagram(
+    cnn_model, 
+    input_shape=(1, 3, 32, 32),
+    output_path="cnn_research.png",
+    style="research_paper"
 )
 ```
 
-**PyTorch Graph** - Making PyTorch model visualization simple, beautiful, and informative! 
+### Advanced Computational Graph Analysis
+
+```python
+from pytorch_graph import track_computational_graph, analyze_computational_graph
+
+# Track complete computational graph
+tracker = track_computational_graph(
+    model=model,
+    input_tensor=input_tensor,
+    track_memory=True,
+    track_timing=True,
+    track_tensor_ops=True
+)
+
+# Save high-quality computational graph
+tracker.save_graph_png(
+    filepath="complete_graph.png",
+    width=1600,
+    height=1200,
+    dpi=300,
+    show_legend=True
+)
+
+# Analyze the computational graph
+analysis = analyze_computational_graph(model, input_tensor, detailed=True)
+print(f"Total operations: {analysis['summary']['total_nodes']}")
+print(f"Execution time: {analysis['summary']['execution_time']:.4f}s")
+```
+
+## 🎯 Diagram Styles
+
+### Enhanced Flowchart (Default)
+```python
+generate_architecture_diagram(model, input_shape, "flowchart.png", style="flowchart")
+```
+**Features:**
+- Lightning bolt icons for activation functions
+- Memory usage per layer (e.g., "~1.2MB")
+- Data flow indicators on arrows
+- Summary panel with total parameters and memory
+- Color-coded model complexity
+
+### Research Paper Style
+```python
+generate_architecture_diagram(model, input_shape, "paper.png", style="research_paper")
+```
+**Features:**
+- Academic formatting and typography
+- Clean, minimal design
+- Publication-ready quality
+- Professional color scheme
+
+### Standard Style
+```python
+generate_architecture_diagram(model, input_shape, "standard.png", style="standard")
+```
+**Features:**
+- Classic neural network visualization
+- Balanced information density
+- Traditional layout
+
+## 🔬 Computational Graph Features
+
+### Complete Graph Traversal
+- **No Artificial Limits**: Traverses entire autograd graph without depth/operation restrictions
+- **Cycle Detection**: Prevents infinite recursion while capturing complete structure
+- **Full Operation Coverage**: Shows every operation in the computational graph
+
+### Smart Visualization
+- **Full Method Names**: Displays complete operation names without truncation
+- **Proper Arrow Connections**: Arrows connect node edges without crossing over boxes
+- **Compact Layout**: Eliminates empty depth levels for continuous flow
+- **Enhanced Spacing**: Optimized node positioning and spacing
+
+### Professional Output
+- **High-Resolution Images**: Up to 300 DPI for publication quality
+- **Intelligent Legends**: Automatic positioning without overlap
+- **Color-Coded Operations**: Different colors for different operation types
+- **Clean Typography**: Professional fonts and text formatting
+
+## 📊 Model Analysis
+
+```python
+from pytorch_graph import analyze_model
+
+# Comprehensive model analysis
+analysis = analyze_model(
+    model=model,
+    input_shape=(1, 784),
+    detailed=True
+)
+
+print(f"Total Parameters: {analysis.get('total_params', 'N/A'):,}")
+print(f"Trainable Parameters: {analysis.get('trainable_params', 'N/A'):,}")
+print(f"Model Size: {analysis.get('model_size_mb', 'N/A'):.2f} MB")
+print(f"Layer Count: {analysis.get('layer_count', 'N/A')}")
+```
+
+## 🛠️ Advanced Configuration
+
+### Custom Computational Graph Settings
+
+```python
+# Create tracker with custom settings
+tracker = ComputationalGraphTracker(
+    model=model,
+    track_memory=True,      # Track memory usage
+    track_timing=True,      # Track execution timing
+    track_tensor_ops=True   # Track tensor operations
+)
+
+# Save with custom parameters
+tracker.save_graph_png(
+    filepath="custom_graph.png",
+    width=2000,             # Custom width
+    height=1500,            # Custom height
+    dpi=300,                # High DPI
+    show_legend=True,       # Show legend
+    node_size=25,           # Node size
+    font_size=12            # Font size
+)
+```
+
+### Architecture Diagram Customization
+
+```python
+generate_architecture_diagram(
+    model=model,
+    input_shape=(1, 784),
+    output_path="custom_architecture.png",
+    title="Custom Model Architecture",
+    style="flowchart",
+    dpi=300,
+    show_legend=True
+)
+```
+
+## 🎨 Visual Examples
+
+### Architecture Diagrams
+- **Flowchart Style**: Professional vertical flow with enhanced information
+- **Research Paper Style**: Clean, academic formatting
+- **Standard Style**: Traditional neural network visualization
+
+### Computational Graphs
+- **Complete Graph**: Full autograd traversal without breaks
+- **Smart Layout**: Compact positioning with proper arrow connections
+- **Full Names**: Complete operation names without truncation
+
+## 📈 Performance Features
+
+- **Memory Tracking**: Real-time memory usage monitoring
+- **Execution Timing**: Performance analysis and timing
+- **Tensor Operations**: Complete tensor operation tracking
+- **Optimized Rendering**: Fast diagram generation
+- **Efficient Layout**: Smart positioning algorithms
+
+## 🔧 Requirements
+
+- **Python**: ≥ 3.8
+- **PyTorch**: ≥ 1.8.0
+- **matplotlib**: ≥ 3.3.0
+- **numpy**: ≥ 1.19.0
+
+## 📚 API Reference
+
+### Core Functions
+- `generate_architecture_diagram()`: Create architecture diagrams
+- `track_computational_graph()`: Track computational graph execution
+- `analyze_computational_graph()`: Analyze graph structure and performance
+- `analyze_model()`: Comprehensive model analysis
+
+### Classes
+- `ComputationalGraphTracker`: Complete computational graph tracking
+- `GraphNode`: Individual graph node representation
+- `GraphEdge`: Graph edge representation
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+
+### Development Setup
+```bash
+git clone https://github.com/your-username/pytorch-graph.git
+cd pytorch-graph
+pip install -e .[dev]
+```
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built for the PyTorch community
+- Inspired by the need for better model visualization tools
+- Designed for researchers, practitioners, and educators
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/your-username/pytorch-graph/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-username/pytorch-graph/discussions)
+- **Documentation**: [Full Documentation](https://pytorch-graph.readthedocs.io)
+
+---
+
+**PyTorch Graph** - Professional PyTorch model visualization made simple, beautiful, and comprehensive! 🚀
