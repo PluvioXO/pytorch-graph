@@ -7,7 +7,7 @@ diagrams with comprehensive layer analysis and data flow visualization.
 
 __version__ = "0.2.0"
 __author__ = "PyTorch Graph Team"
-__email__ = "contact@pytorch-graph.com"
+__email__ = "contact@maxnicholson011@gmail.com"
 
 import warnings
 

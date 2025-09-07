@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "pytorch-graph"
 version = "0.2.0"
 authors = [
-    {name = "PyTorch Graph Team", email = "contact@pytorch-graph.com"},
+    {name = "PyTorch Graph Team", email = "contact@maxnicholson011@gmail.com"},
 ]
 description = "Enhanced PyTorch neural network architecture visualization with flowchart diagrams"
 readme = "README.md"
