@@ -238,7 +238,7 @@ generate_architecture_diagram(model, input_shape, "standard.png", style="standar
 ## Model Analysis
 
 ```python
-from pytorch-graph import analyze_model
+from pytorch_graph import analyze_model
 
 # Comprehensive model analysis
 analysis = analyze_model(
