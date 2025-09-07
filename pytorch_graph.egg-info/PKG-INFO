@@ -1,7 +1,7 @@
 Metadata-Version: 2.4
 Name: pytorch-graph
-Version: 0.2.4
-Summary: Enhanced PyTorch neural network architecture visualization with flowchart diagrams. Install with 'pip install pytorch-graph', import with 'imprt pytorch_graph'
+Version: 0.2.5
+Summary: Enhanced PyTorch neural network architecture visualization with flowchart diagrams. Install with 'pip install pytorch-graph', import with 'import pytorch_graph'
 Home-page: https://github.com/pluvioxo/pytorch-graph
 Author: Max
 Author-email: PyTorch Graph Team <maxnicholson011@gmail.com>

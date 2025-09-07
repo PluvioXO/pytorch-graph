@@ -5,7 +5,7 @@ This package provides tools to visualize PyTorch neural networks in professional
 diagrams with comprehensive layer analysis and data flow visualization.
 """
 
-__version__ = "0.2.4"
+__version__ = "0.2.5"
 __author__ = "PyTorch Graph Team"
 __email__ = "contact@maxnicholson011@gmail.com"
 
