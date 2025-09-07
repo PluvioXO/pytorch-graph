@@ -79,7 +79,7 @@ pip install pytorch-graph[dev]
 ```python
 import torch
 import torch.nn as nn
-from pytorch-graph import generate_architecture_diagram
+from pytorch_graph import generate_architecture_diagram
 
 # Define your model
 model = nn.Sequential(
@@ -102,7 +102,7 @@ generate_architecture_diagram(
 ### Complete Computational Graph Analysis
 
 ```python
-from pytorch-graph import ComputationalGraphTracker
+from pytorch_graph import ComputationalGraphTracker
 import torch
 
 # Create a tracker for your model
@@ -158,7 +158,7 @@ generate_architecture_diagram(
 ### Advanced Computational Graph Analysis
 
 ```python
-from pytorch-graph import track_computational_graph, analyze_computational_graph
+from pytorch_graph import track_computational_graph, analyze_computational_graph
 
 # Track complete computational graph
 tracker = track_computational_graph(
