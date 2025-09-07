@@ -388,10 +388,21 @@ class ComputationalGraphTracker:
             
             # Count operation types
             for node in self.nodes.values():
-                summary['operation_types'][node.operation_type.value] += 1
-                if node.module_name:
-                    module_type = node.metadata.get('module_type', 'Unknown') if node.metadata else 'Unknown'
-                    summary['module_types'][module_type] += 1
+                # Handle both GraphNode objects and dictionary objects
+                if hasattr(node, 'operation_type'):
+                    # GraphNode object
+                    op_type = node.operation_type.value if hasattr(node.operation_type, 'value') else str(node.operation_type)
+                    summary['operation_types'][op_type] += 1
+                    if hasattr(node, 'module_name') and node.module_name:
+                        module_type = node.metadata.get('module_type', 'Unknown') if hasattr(node, 'metadata') and node.metadata else 'Unknown'
+                        summary['module_types'][module_type] += 1
+                elif isinstance(node, dict):
+                    # Dictionary object
+                    op_type = node.get('operation_type', 'unknown')
+                    summary['operation_types'][op_type] += 1
+                    if node.get('module_name'):
+                        module_type = node.get('metadata', {}).get('module_type', 'Unknown') if isinstance(node.get('metadata'), dict) else 'Unknown'
+                        summary['module_types'][module_type] += 1
             
             return summary
     
@@ -1088,12 +1099,34 @@ def analyze_computational_graph(model: nn.Module, input_tensor: torch.Tensor,
         # Layer-wise analysis
         layer_analysis = defaultdict(list)
         for node in tracker.nodes.values():
-            if node.module_name:
-                layer_analysis[node.module_name].append({
-                    'operation_type': node.operation_type.value,
-                    'execution_time': node.execution_time,
-                    'input_shapes': node.input_shapes,
-                    'output_shapes': node.output_shapes,
+            # Handle both GraphNode objects and dictionary objects
+            module_name = None
+            op_type = None
+            execution_time = None
+            input_shapes = None
+            output_shapes = None
+            
+            if hasattr(node, 'module_name'):
+                # GraphNode object
+                module_name = node.module_name
+                op_type = node.operation_type.value if hasattr(node.operation_type, 'value') else str(node.operation_type)
+                execution_time = node.execution_time
+                input_shapes = node.input_shapes
+                output_shapes = node.output_shapes
+            elif isinstance(node, dict):
+                # Dictionary object
+                module_name = node.get('module_name')
+                op_type = node.get('operation_type', 'unknown')
+                execution_time = node.get('execution_time')
+                input_shapes = node.get('input_shapes')
+                output_shapes = node.get('output_shapes')
+            
+            if module_name:
+                layer_analysis[module_name].append({
+                    'operation_type': op_type,
+                    'execution_time': execution_time,
+                    'input_shapes': input_shapes,
+                    'output_shapes': output_shapes,
                 })
         
         analysis['layer_analysis'] = dict(layer_analysis)

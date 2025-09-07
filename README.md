@@ -6,30 +6,60 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-1.8+-red.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PyPI version](https://badge.fury.io/py/pytorch-graph.svg)](https://badge.fury.io/py/pytorch-graph)
+[![Documentation](https://img.shields.io/badge/docs-readthedocs-blue.svg)](https://pytorch-graph.readthedocs.io/)
+[![Demo](https://img.shields.io/badge/demo-run%20demo-green.svg)](#-demo)
 
-## 🚀 Key Features
+## Documentation
 
-### 📊 **Architecture Visualization**
+- **[Complete Documentation](https://pytorch-graph.readthedocs.io/)** - Full API reference, guides, and examples
+- **[Quick Start Guide](https://pytorch-graph.readthedocs.io/en/latest/quickstart.html)** - Get started in minutes
+- **[API Reference](https://pytorch-graph.readthedocs.io/en/latest/api/main_module.html)** - Complete function and class documentation
+- **[Examples](https://pytorch-graph.readthedocs.io/en/latest/examples.html)** - Comprehensive usage examples
+
+## Demo
+
+Try the library immediately with our included demo:
+
+```bash
+# Clone the repository
+git clone https://github.com/PluvioXO/pytorch-graph.git
+cd pytorch-graph
+
+# Run the demo
+python3 demo.py
+```
+
+The demo generates:
+- **Architecture diagrams** (flowchart + research paper styles)
+- **Computational graph visualization** 
+- **Model analysis** with parameter counts and memory usage
+- **Professional quality output** ready for publications
+
+**Output files** are saved to `demo_outputs/` directory.
+
+## Key Features
+
+### Architecture Visualization
 - **Professional Flowchart Diagrams**: Clean, vertical flowchart visualization with enhanced styling
 - **Research Paper Style**: Publication-ready diagrams with academic formatting
 - **Multiple Export Formats**: High-quality PNG with customizable DPI (up to 300 DPI)
 - **Comprehensive Layer Analysis**: Parameter counts, memory usage, and tensor shape transformations
 
-### 🔍 **Complete Computational Graph Analysis**
+### Complete Computational Graph Analysis
 - **Maximal Graph Traversal**: Captures the entire computational graph without artificial limits
 - **Full Operation Names**: Displays complete method and object names (no truncation)
 - **Smart Arrow Positioning**: Arrows connect node edges properly without crossing over boxes
 - **Compact Layout**: Eliminates gaps and breaks for continuous graph flow
 - **Real-time Execution Tracking**: Monitors forward/backward passes and tensor operations
 
-### 🎨 **Professional Quality**
+### Professional Quality
 - **Enhanced Color Schemes**: Color-coded operation types and layer categories
 - **Intelligent Legend Positioning**: Automatic legend placement without overlap
 - **Memory Analysis**: Per-layer and total memory usage estimates
 - **Model Complexity Assessment**: Automatic size classification (Small/Medium/Large)
 - **Data Flow Visualization**: Tensor sizes and shapes displayed on connections
 
-## 📦 Installation
+## Installation
 
 ```bash
 # Basic installation
@@ -42,7 +72,7 @@ pip install pytorch-graph[full]
 pip install pytorch-graph[dev]
 ```
 
-## 🏃‍♂️ Quick Start
+## Quick Start
 
 ### Architecture Visualization
 
@@ -90,7 +120,7 @@ tracker.stop_tracking()
 tracker.save_graph_png("complete_computational_graph.png")
 ```
 
-## 📋 Comprehensive Examples
+## Comprehensive Examples
 
 ### CNN Architecture Visualization
 
@@ -154,7 +184,7 @@ print(f"Total operations: {analysis['summary']['total_nodes']}")
 print(f"Execution time: {analysis['summary']['execution_time']:.4f}s")
 ```
 
-## 🎯 Diagram Styles
+## Diagram Styles
 
 ### Enhanced Flowchart (Default)
 ```python
@@ -186,7 +216,7 @@ generate_architecture_diagram(model, input_shape, "standard.png", style="standar
 - Balanced information density
 - Traditional layout
 
-## 🔬 Computational Graph Features
+## Computational Graph Features
 
 ### Complete Graph Traversal
 - **No Artificial Limits**: Traverses entire autograd graph without depth/operation restrictions
@@ -205,7 +235,7 @@ generate_architecture_diagram(model, input_shape, "standard.png", style="standar
 - **Color-Coded Operations**: Different colors for different operation types
 - **Clean Typography**: Professional fonts and text formatting
 
-## 📊 Model Analysis
+## Model Analysis
 
 ```python
 from pytorch_graph import analyze_model
@@ -223,7 +253,7 @@ print(f"Model Size: {analysis.get('model_size_mb', 'N/A'):.2f} MB")
 print(f"Layer Count: {analysis.get('layer_count', 'N/A')}")
 ```
 
-## 🛠️ Advanced Configuration
+## Advanced Configuration
 
 ### Custom Computational Graph Settings
 
@@ -262,7 +292,7 @@ generate_architecture_diagram(
 )
 ```
 
-## 🎨 Visual Examples
+## Visual Examples
 
 ### Architecture Diagrams
 - **Flowchart Style**: Professional vertical flow with enhanced information
@@ -274,7 +304,7 @@ generate_architecture_diagram(
 - **Smart Layout**: Compact positioning with proper arrow connections
 - **Full Names**: Complete operation names without truncation
 
-## 📈 Performance Features
+## Performance Features
 
 - **Memory Tracking**: Real-time memory usage monitoring
 - **Execution Timing**: Performance analysis and timing
@@ -282,14 +312,14 @@ generate_architecture_diagram(
 - **Optimized Rendering**: Fast diagram generation
 - **Efficient Layout**: Smart positioning algorithms
 
-## 🔧 Requirements
+## Requirements
 
 - **Python**: ≥ 3.8
 - **PyTorch**: ≥ 1.8.0
 - **matplotlib**: ≥ 3.3.0
 - **numpy**: ≥ 1.19.0
 
-## 📚 API Reference
+## API Reference
 
 ### Core Functions
 - `generate_architecture_diagram()`: Create architecture diagrams
@@ -302,7 +332,7 @@ generate_architecture_diagram(
 - `GraphNode`: Individual graph node representation
 - `GraphEdge`: Graph edge representation
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
 
@@ -313,17 +343,17 @@ cd pytorch-graph
 pip install -e .[dev]
 ```
 
-## 📄 License
+## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Built for the PyTorch community
 - Inspired by the need for better model visualization tools
 - Designed for researchers, practitioners, and educators
 
-## 📞 Support
+## Support
 
 - **Issues**: [GitHub Issues](https://github.com/your-username/pytorch-graph/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/your-username/pytorch-graph/discussions)
@@ -331,4 +361,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**PyTorch Graph** - Professional PyTorch model visualization made simple, beautiful, and comprehensive! 🚀
+**PyTorch Graph** - Professional PyTorch model visualization made simple, beautiful, and comprehensive.
