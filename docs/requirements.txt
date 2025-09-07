@@ -2,19 +2,9 @@
 # Core documentation tools
 sphinx>=5.0.0
 sphinx-rtd-theme>=1.0.0
-myst-parser>=1.0.0
 
 # For better code highlighting
 pygments>=2.10.0
 
 # For API documentation
 sphinx-autodoc-typehints>=1.12.0
-
-# For better cross-references
-sphinxcontrib-bibtex>=2.4.0
-
-# For better math support
-sphinxcontrib-katex>=0.8.0
-
-# For better image handling
-sphinxcontrib-images>=0.9.0

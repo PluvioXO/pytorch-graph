@@ -39,7 +39,6 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinx.ext.napoleon',
-    'myst_parser',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -108,26 +107,13 @@ napoleon_type_aliases = None
 napoleon_attr_annotations = True
 
 # -- Options for MyST Parser -------------------------------------------------
-
-# MyST Parser settings
-myst_enable_extensions = [
-    "colon_fence",
-    "deflist",
-    "dollarmath",
-    "html_admonition",
-    "html_image",
-    "linkify",
-    "replacements",
-    "smartquotes",
-    "substitution",
-    "tasklist",
-]
+# (Not using MyST Parser, using standard reStructuredText)
 
 # -- Custom configuration ----------------------------------------------------
 
 # Add any custom configuration here
-html_logo = '_static/logo.png'
-html_favicon = '_static/favicon.ico'
+# html_logo = '_static/logo.png'
+# html_favicon = '_static/favicon.ico'
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
