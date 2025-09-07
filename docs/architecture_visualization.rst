@@ -29,7 +29,7 @@ Generate a simple architecture diagram:
 .. code-block:: python
 
    import torch.nn as nn
-   from pytorch_graph import generate_architecture_diagram
+   from pytorch-graph import generate_architecture_diagram
 
    model = nn.Sequential(
        nn.Linear(784, 128),

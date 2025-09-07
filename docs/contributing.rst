@@ -53,7 +53,7 @@ Run with coverage:
 
 .. code-block:: bash
 
-   pytest --cov=pytorch_graph
+   pytest --cov=pytorch-graph
 
 Code Quality
 ------------
@@ -63,20 +63,20 @@ We use several tools to maintain code quality:
 **Linting:**
 .. code-block:: bash
 
-   flake8 pytorch_graph/
-   black pytorch_graph/
-   isort pytorch_graph/
+   flake8 pytorch-graph/
+   black pytorch-graph/
+   isort pytorch-graph/
 
 **Type checking:**
 .. code-block:: bash
 
-   mypy pytorch_graph/
+   mypy pytorch-graph/
 
 **Format code:**
 .. code-block:: bash
 
-   black pytorch_graph/
-   isort pytorch_graph/
+   black pytorch-graph/
+   isort pytorch-graph/
 
 Building Documentation
 ----------------------

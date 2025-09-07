@@ -15,8 +15,8 @@ The `pytorch-graph` package has been successfully prepared for PyPI publication 
 ## Files Created
 
 ### Distribution Files (Ready for Upload)
-- `dist/pytorch_graph-0.2.0-py3-none-any.whl` (39KB) - Wheel distribution
-- `dist/pytorch_graph-0.2.0.tar.gz` (35KB) - Source distribution
+- `dist/pytorch-graph-0.2.0-py3-none-any.whl` (39KB) - Wheel distribution
+- `dist/pytorch-graph-0.2.0.tar.gz` (35KB) - Source distribution
 
 ### Package Configuration
 - `setup.py` - Package metadata and dependencies

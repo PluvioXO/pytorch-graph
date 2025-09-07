@@ -6,23 +6,23 @@ This module provides utility functions and classes for PyTorch Graph.
 Classes
 -------
 
-.. autoclass:: pytorch_graph.LayerInfo
+.. autoclass:: pytorch-graph.LayerInfo
    :members:
    :undoc-members:
 
-.. autoclass:: pytorch_graph.PositionCalculator
+.. autoclass:: pytorch-graph.PositionCalculator
    :members:
    :undoc-members:
 
-.. autoclass:: pytorch_graph.HookManager
+.. autoclass:: pytorch-graph.HookManager
    :members:
    :undoc-members:
 
-.. autoclass:: pytorch_graph.ActivationExtractor
+.. autoclass:: pytorch-graph.ActivationExtractor
    :members:
    :undoc-members:
 
-.. autoclass:: pytorch_graph.FeatureMapExtractor
+.. autoclass:: pytorch-graph.FeatureMapExtractor
    :members:
    :undoc-members:
 
@@ -289,7 +289,7 @@ Using LayerInfo
 
 .. code-block:: python
 
-   from pytorch_graph import LayerInfo
+   from pytorch-graph import LayerInfo
 
    # Create a layer info object
    layer = LayerInfo(
@@ -319,7 +319,7 @@ Using PositionCalculator
 
 .. code-block:: python
 
-   from pytorch_graph import PositionCalculator, LayerInfo
+   from pytorch-graph import PositionCalculator, LayerInfo
 
    # Create position calculator
    calculator = PositionCalculator(
@@ -358,7 +358,7 @@ Using HookManager
 
    import torch
    import torch.nn as nn
-   from pytorch_graph import HookManager
+   from pytorch-graph import HookManager
 
    model = nn.Sequential(
        nn.Linear(784, 128),
@@ -393,7 +393,7 @@ Using ActivationExtractor
 
    import torch
    import torch.nn as nn
-   from pytorch_graph import ActivationExtractor
+   from pytorch-graph import ActivationExtractor
 
    model = nn.Sequential(
        nn.Linear(784, 128),
@@ -430,7 +430,7 @@ Using FeatureMapExtractor
 
    import torch
    import torch.nn as nn
-   from pytorch_graph import FeatureMapExtractor
+   from pytorch-graph import FeatureMapExtractor
 
    # Create a CNN model
    cnn_model = nn.Sequential(
@@ -474,7 +474,7 @@ Custom Layer Analysis
 
    def analyze_model_layers(model, input_shape):
        """Comprehensive layer analysis."""
-       from pytorch_graph import LayerInfo, ActivationExtractor
+       from pytorch-graph import LayerInfo, ActivationExtractor
        
        # Create layer info objects
        layers = []
@@ -522,7 +522,7 @@ Memory Usage Analysis
 
    def analyze_memory_usage(model, input_shape):
        """Analyze memory usage of model layers."""
-       from pytorch_graph import LayerInfo, ActivationExtractor
+       from pytorch-graph import LayerInfo, ActivationExtractor
        
        # Get layer information
        layers = []

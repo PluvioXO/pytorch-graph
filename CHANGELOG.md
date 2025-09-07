@@ -5,7 +5,13 @@ All notable changes to PyTorch Graph will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.2] - 2024-12-19
+
+### Fixed
+- Clarified package installation and import instructions in PyPI description
+- Updated package description to explicitly show correct import syntax
+
+## [0.2.1] - 2024-12-19
 
 ### Added
 - Complete computational graph tracking with maximal traversal
@@ -19,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - JSON data export for computational graphs
 - Enhanced color schemes and typography
 - Intelligent legend positioning without overlap
+- Professional README with comprehensive documentation
+- Complete Sphinx documentation with API reference
+- Contributing guidelines and development setup
 
 ### Changed
 - Improved computational graph traversal algorithm
@@ -26,6 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Better arrow connection logic
 - Professional styling and formatting
 - Optimized rendering performance
+- Updated demo script for better functionality showcase
+- Enhanced error handling and robustness
 
 ### Fixed
 - Arrow positioning issues (no more crossing over boxes)
@@ -33,6 +44,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Gaps and breaks in graph layout
 - Legend overlap issues
 - Memory and performance optimizations
+- Input shape handling in demo and parser
+- Dictionary object attribute access errors
+- None value formatting issues in analysis output
 
 ## [0.2.0] - 2024-12-19
 

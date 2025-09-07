@@ -13,7 +13,7 @@ Simple MLP
 
    import torch
    import torch.nn as nn
-   from pytorch_graph import generate_architecture_diagram, track_computational_graph
+   from pytorch-graph import generate_architecture_diagram, track_computational_graph
 
    # Define a simple MLP
    model = nn.Sequential(
@@ -277,7 +277,7 @@ Model Comparison
            )
            
            # Analysis
-           from pytorch_graph import analyze_model, analyze_computational_graph
+           from pytorch-graph import analyze_model, analyze_computational_graph
            
            model_analysis = analyze_model(model, input_shape=input_shape)
            graph_analysis = analyze_computational_graph(model, input_tensor)
@@ -398,7 +398,7 @@ Research Paper Workflow
        )
        
        # Analysis data
-       from pytorch_graph import analyze_model, analyze_computational_graph
+       from pytorch-graph import analyze_model, analyze_computational_graph
        
        model_analysis = analyze_model(model, input_shape=input_shape)
        graph_analysis = analyze_computational_graph(model, input_tensor, detailed=True)

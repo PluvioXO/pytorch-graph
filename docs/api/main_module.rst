@@ -1,7 +1,7 @@
 Main Module API
 ===============
 
-This module provides the main public API for PyTorch Graph. All functions and classes are available directly from the `pytorch_graph` package.
+This module provides the main public API for PyTorch Graph. All functions and classes are available directly from the `pytorch-graph` package.
 
 Core Functions
 --------------
@@ -9,47 +9,47 @@ Core Functions
 Architecture Visualization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autofunction:: pytorch_graph.generate_architecture_diagram
+.. autofunction:: pytorch-graph.generate_architecture_diagram
 
-.. autofunction:: pytorch_graph.save_architecture_diagram
+.. autofunction:: pytorch-graph.save_architecture_diagram
 
-.. autofunction:: pytorch_graph.generate_research_paper_diagram
+.. autofunction:: pytorch-graph.generate_research_paper_diagram
 
-.. autofunction:: pytorch_graph.generate_flowchart_diagram
+.. autofunction:: pytorch-graph.generate_flowchart_diagram
 
-.. autofunction:: pytorch_graph.visualize
+.. autofunction:: pytorch-graph.visualize
 
-.. autofunction:: pytorch_graph.visualize_model
+.. autofunction:: pytorch-graph.visualize_model
 
-.. autofunction:: pytorch_graph.compare_models
+.. autofunction:: pytorch-graph.compare_models
 
-.. autofunction:: pytorch_graph.create_architecture_report
+.. autofunction:: pytorch-graph.create_architecture_report
 
 Model Analysis
 ~~~~~~~~~~~~~~
 
-.. autofunction:: pytorch_graph.analyze_model
+.. autofunction:: pytorch-graph.analyze_model
 
-.. autofunction:: pytorch_graph.profile_model
+.. autofunction:: pytorch-graph.profile_model
 
-.. autofunction:: pytorch_graph.extract_activations
+.. autofunction:: pytorch-graph.extract_activations
 
 Computational Graph Tracking
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autofunction:: pytorch_graph.track_computational_graph
+.. autofunction:: pytorch-graph.track_computational_graph
 
-.. autofunction:: pytorch_graph.analyze_computational_graph
+.. autofunction:: pytorch-graph.analyze_computational_graph
 
-.. autofunction:: pytorch_graph.track_computational_graph_execution
+.. autofunction:: pytorch-graph.track_computational_graph_execution
 
-.. autofunction:: pytorch_graph.analyze_computational_graph_execution
+.. autofunction:: pytorch-graph.analyze_computational_graph_execution
 
-.. autofunction:: pytorch_graph.visualize_computational_graph
+.. autofunction:: pytorch-graph.visualize_computational_graph
 
-.. autofunction:: pytorch_graph.export_computational_graph
+.. autofunction:: pytorch-graph.export_computational_graph
 
-.. autofunction:: pytorch_graph.save_computational_graph_png
+.. autofunction:: pytorch-graph.save_computational_graph_png
 
 Classes
 -------
@@ -57,60 +57,60 @@ Classes
 Core Classes
 ~~~~~~~~~~~~
 
-.. autoclass:: pytorch_graph.PyTorchVisualizer
+.. autoclass:: pytorch-graph.PyTorchVisualizer
    :members:
    :undoc-members:
 
-.. autoclass:: pytorch_graph.ComputationalGraphTracker
+.. autoclass:: pytorch-graph.ComputationalGraphTracker
    :members:
    :undoc-members:
 
-.. autoclass:: pytorch_graph.ModelAnalyzer
+.. autoclass:: pytorch-graph.ModelAnalyzer
    :members:
    :undoc-members:
 
 Utility Classes
 ~~~~~~~~~~~~~~~
 
-.. autoclass:: pytorch_graph.LayerInfo
+.. autoclass:: pytorch-graph.LayerInfo
    :members:
    :undoc-members:
 
-.. autoclass:: pytorch_graph.PositionCalculator
+.. autoclass:: pytorch-graph.PositionCalculator
    :members:
    :undoc-members:
 
-.. autoclass:: pytorch_graph.HookManager
+.. autoclass:: pytorch-graph.HookManager
    :members:
    :undoc-members:
 
-.. autoclass:: pytorch_graph.ActivationExtractor
+.. autoclass:: pytorch-graph.ActivationExtractor
    :members:
    :undoc-members:
 
-.. autoclass:: pytorch_graph.FeatureMapExtractor
+.. autoclass:: pytorch-graph.FeatureMapExtractor
    :members:
    :undoc-members:
 
 Data Classes
 ~~~~~~~~~~~~
 
-.. autoclass:: pytorch_graph.GraphNode
+.. autoclass:: pytorch-graph.GraphNode
    :members:
    :undoc-members:
 
-.. autoclass:: pytorch_graph.GraphEdge
+.. autoclass:: pytorch-graph.GraphEdge
    :members:
    :undoc-members:
 
-.. autoclass:: pytorch_graph.OperationType
+.. autoclass:: pytorch-graph.OperationType
    :members:
    :undoc-members:
 
 Enums
 ~~~~~
 
-.. autoclass:: pytorch_graph.OperationType
+.. autoclass:: pytorch-graph.OperationType
    :members:
    :undoc-members:
 
@@ -233,7 +233,7 @@ compare_models
 create_architecture_report
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. function:: create_architecture_report(model, input_shape=None, output_path="pytorch_graph_report.html")
+.. function:: create_architecture_report(model, input_shape=None, output_path="pytorch-graph_report.html")
 
    Create a comprehensive HTML report of the PyTorch model architecture.
 
@@ -241,7 +241,7 @@ create_architecture_report
    
    * **model** (torch.nn.Module): PyTorch model to analyze
    * **input_shape** (tuple, optional): Input tensor shape
-   * **output_path** (str, optional): Path for the output HTML file (default: "pytorch_graph_report.html")
+   * **output_path** (str, optional): Path for the output HTML file (default: "pytorch-graph_report.html")
 
    **Returns:** None
 
@@ -422,7 +422,7 @@ Basic Usage
 
    import torch
    import torch.nn as nn
-   from pytorch_graph import (
+   from pytorch-graph import (
        generate_architecture_diagram,
        analyze_model,
        track_computational_graph
@@ -457,7 +457,7 @@ Advanced Usage
 
 .. code-block:: python
 
-   from pytorch_graph import (
+   from pytorch-graph import (
        PyTorchVisualizer,
        ComputationalGraphTracker,
        ModelAnalyzer

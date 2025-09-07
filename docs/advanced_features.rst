@@ -21,7 +21,7 @@ Fine-tune your visualizations with custom parameters:
 
 .. code-block:: python
 
-   from pytorch_graph import ComputationalGraphTracker
+   from pytorch-graph import ComputationalGraphTracker
 
    # Create tracker with custom settings
    tracker = ComputationalGraphTracker(

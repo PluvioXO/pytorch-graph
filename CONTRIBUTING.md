@@ -101,7 +101,7 @@ python -m pytest tests/
 python demo.py
 
 # Check code style
-flake8 pytorch_graph/
+flake8 pytorch-graph/
 ```
 
 ### 4. Commit Your Changes
@@ -215,7 +215,7 @@ python -m pytest
 python -m pytest tests/unit/test_parser.py
 
 # Run with coverage
-python -m pytest --cov=pytorch_graph
+python -m pytest --cov=pytorch-graph
 
 # Run visual tests (generates output files)
 python -m pytest tests/integration/test_visualization.py
@@ -234,13 +234,13 @@ python -m pytest tests/integration/test_visualization.py
 
 ```bash
 # Format code
-black pytorch_graph/ tests/
+black pytorch-graph/ tests/
 
 # Sort imports
-isort pytorch_graph/ tests/
+isort pytorch-graph/ tests/
 
 # Check style
-flake8 pytorch_graph/ tests/
+flake8 pytorch-graph/ tests/
 ```
 
 ### Naming Conventions
@@ -253,7 +253,7 @@ flake8 pytorch_graph/ tests/
 ### File Organization
 
 ```
-pytorch_graph/
+pytorch-graph/
 ├── __init__.py         # Public API
 ├── core/               # Core functionality
 │   ├── parser.py       # Model parsing

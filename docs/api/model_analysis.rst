@@ -6,16 +6,16 @@ This module provides comprehensive model analysis capabilities for PyTorch model
 Core Functions
 --------------
 
-.. autofunction:: pytorch_graph.analyze_model
+.. autofunction:: pytorch-graph.analyze_model
 
-.. autofunction:: pytorch_graph.profile_model
+.. autofunction:: pytorch-graph.profile_model
 
-.. autofunction:: pytorch_graph.extract_activations
+.. autofunction:: pytorch-graph.extract_activations
 
 Classes
 -------
 
-.. autoclass:: pytorch_graph.ModelAnalyzer
+.. autoclass:: pytorch-graph.ModelAnalyzer
    :members:
    :undoc-members:
 
@@ -64,7 +64,7 @@ analyze_model
    .. code-block:: python
 
       import torch.nn as nn
-      from pytorch_graph import analyze_model
+      from pytorch-graph import analyze_model
 
       model = nn.Sequential(
           nn.Linear(784, 128),
@@ -108,7 +108,7 @@ profile_model
    
    .. code-block:: python
 
-      from pytorch_graph import profile_model
+      from pytorch-graph import profile_model
 
       profiling_results = profile_model(
           model=model,
@@ -143,7 +143,7 @@ extract_activations
    .. code-block:: python
 
       import torch
-      from pytorch_graph import extract_activations
+      from pytorch-graph import extract_activations
 
       input_tensor = torch.randn(1, 784)
       activations = extract_activations(
@@ -231,7 +231,7 @@ Basic Model Analysis
 .. code-block:: python
 
    import torch.nn as nn
-   from pytorch_graph import analyze_model
+   from pytorch-graph import analyze_model
 
    model = nn.Sequential(
        nn.Linear(784, 128),
@@ -265,7 +265,7 @@ Performance Profiling
 
 .. code-block:: python
 
-   from pytorch_graph import profile_model
+   from pytorch-graph import profile_model
 
    # Profile model performance
    profiling_results = profile_model(
@@ -286,7 +286,7 @@ Activation Extraction
 .. code-block:: python
 
    import torch
-   from pytorch_graph import extract_activations
+   from pytorch-graph import extract_activations
 
    input_tensor = torch.randn(1, 784)
    
@@ -308,7 +308,7 @@ Advanced Usage with ModelAnalyzer
 
 .. code-block:: python
 
-   from pytorch_graph import ModelAnalyzer
+   from pytorch-graph import ModelAnalyzer
 
    # Create analyzer
    analyzer = ModelAnalyzer()

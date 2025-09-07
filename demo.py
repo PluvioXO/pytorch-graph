@@ -17,7 +17,7 @@ import sys
 try:
     current_dir = os.path.dirname(os.path.abspath(__file__))
     sys.path.insert(0, current_dir)
-    from pytorch_graph import (
+    from pytorch-graph import (
         generate_architecture_diagram,
         track_computational_graph,
         analyze_model

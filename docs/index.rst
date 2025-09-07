@@ -34,7 +34,7 @@ Generate a professional architecture diagram:
 
    import torch
    import torch.nn as nn
-   from pytorch_graph import generate_architecture_diagram
+   from pytorch-graph import generate_architecture_diagram
 
    # Define your model
    model = nn.Sequential(
@@ -55,7 +55,7 @@ Track complete computational graph:
 
 .. code-block:: python
 
-   from pytorch_graph import track_computational_graph
+   from pytorch-graph import track_computational_graph
 
    # Track computational graph
    tracker = track_computational_graph(
@@ -168,7 +168,7 @@ Architecture Visualization
 
 .. code-block:: python
 
-   from pytorch_graph import generate_architecture_diagram
+   from pytorch-graph import generate_architecture_diagram
 
    # Generate flowchart style
    generate_architecture_diagram(
@@ -191,7 +191,7 @@ Computational Graph Tracking
 
 .. code-block:: python
 
-   from pytorch_graph import ComputationalGraphTracker
+   from pytorch-graph import ComputationalGraphTracker
 
    # Create tracker
    tracker = ComputationalGraphTracker(
@@ -221,7 +221,7 @@ Model Analysis
 
 .. code-block:: python
 
-   from pytorch_graph import analyze_model, analyze_computational_graph
+   from pytorch-graph import analyze_model, analyze_computational_graph
 
    # Analyze model structure
    analysis = analyze_model(model, input_shape=(1, 784))

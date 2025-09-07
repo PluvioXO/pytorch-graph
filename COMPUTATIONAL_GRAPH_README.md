@@ -30,7 +30,7 @@
 ```python
 import torch
 import torch.nn as nn
-from pytorch_graph import track_computational_graph, ComputationalGraphTracker
+from pytorch-graph import track_computational_graph, ComputationalGraphTracker
 
 # Create a model
 model = nn.Sequential(

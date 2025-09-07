@@ -30,7 +30,7 @@ Analyze a simple model:
 .. code-block:: python
 
    import torch.nn as nn
-   from pytorch_graph import analyze_model
+   from pytorch-graph import analyze_model
 
    model = nn.Sequential(
        nn.Linear(784, 128),
@@ -55,7 +55,7 @@ Get detailed analysis with computational graph tracking:
 .. code-block:: python
 
    import torch
-   from pytorch_graph import analyze_computational_graph
+   from pytorch-graph import analyze_computational_graph
 
    input_tensor = torch.randn(1, 784, requires_grad=True)
 
@@ -135,7 +135,7 @@ Analyze model performance in detail:
 
 .. code-block:: python
 
-   from pytorch_graph import ComputationalGraphTracker
+   from pytorch-graph import ComputationalGraphTracker
 
    def analyze_performance(model, input_tensor, num_runs=5):
        execution_times = []

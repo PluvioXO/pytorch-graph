@@ -6,26 +6,26 @@ This module provides comprehensive functions for generating professional archite
 Core Functions
 --------------
 
-.. autofunction:: pytorch_graph.generate_architecture_diagram
+.. autofunction:: pytorch-graph.generate_architecture_diagram
 
-.. autofunction:: pytorch_graph.save_architecture_diagram
+.. autofunction:: pytorch-graph.save_architecture_diagram
 
-.. autofunction:: pytorch_graph.generate_research_paper_diagram
+.. autofunction:: pytorch-graph.generate_research_paper_diagram
 
-.. autofunction:: pytorch_graph.generate_flowchart_diagram
+.. autofunction:: pytorch-graph.generate_flowchart_diagram
 
-.. autofunction:: pytorch_graph.visualize
+.. autofunction:: pytorch-graph.visualize
 
-.. autofunction:: pytorch_graph.visualize_model
+.. autofunction:: pytorch-graph.visualize_model
 
-.. autofunction:: pytorch_graph.compare_models
+.. autofunction:: pytorch-graph.compare_models
 
-.. autofunction:: pytorch_graph.create_architecture_report
+.. autofunction:: pytorch-graph.create_architecture_report
 
 Classes
 -------
 
-.. autoclass:: pytorch_graph.PyTorchVisualizer
+.. autoclass:: pytorch-graph.PyTorchVisualizer
    :members:
    :undoc-members:
 
@@ -60,7 +60,7 @@ generate_architecture_diagram
    .. code-block:: python
 
       import torch.nn as nn
-      from pytorch_graph import generate_architecture_diagram
+      from pytorch-graph import generate_architecture_diagram
 
       model = nn.Sequential(
           nn.Linear(784, 128),
@@ -181,7 +181,7 @@ compare_models
 create_architecture_report
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. function:: create_architecture_report(model, input_shape=None, output_path="pytorch_graph_report.html")
+.. function:: create_architecture_report(model, input_shape=None, output_path="pytorch-graph_report.html")
 
    Create a comprehensive HTML report of the PyTorch model architecture.
 
@@ -189,7 +189,7 @@ create_architecture_report
    
    * **model** (torch.nn.Module): PyTorch model to analyze
    * **input_shape** (tuple, optional): Input tensor shape
-   * **output_path** (str, optional): Path for the output HTML file (default: "pytorch_graph_report.html")
+   * **output_path** (str, optional): Path for the output HTML file (default: "pytorch-graph_report.html")
 
    **Returns:** None
 
@@ -364,7 +364,7 @@ Basic Architecture Diagram
 .. code-block:: python
 
    import torch.nn as nn
-   from pytorch_graph import generate_architecture_diagram
+   from pytorch-graph import generate_architecture_diagram
 
    model = nn.Sequential(
        nn.Linear(784, 128),
@@ -387,7 +387,7 @@ Research Paper Quality Diagram
 
 .. code-block:: python
 
-   from pytorch_graph import generate_research_paper_diagram
+   from pytorch-graph import generate_research_paper_diagram
 
    path = generate_research_paper_diagram(
        model=model,
@@ -401,7 +401,7 @@ Research Paper Quality Diagram
 
 .. code-block:: python
 
-   from pytorch_graph import visualize
+   from pytorch-graph import visualize
 
    fig = visualize(
        model=model,
@@ -418,7 +418,7 @@ Model Comparison
 
 .. code-block:: python
 
-   from pytorch_graph import compare_models
+   from pytorch-graph import compare_models
 
    models = [mlp_model, cnn_model, resnet_model]
    names = ["MLP", "CNN", "ResNet"]
@@ -437,7 +437,7 @@ Comprehensive Report
 
 .. code-block:: python
 
-   from pytorch_graph import create_architecture_report
+   from pytorch-graph import create_architecture_report
 
    create_architecture_report(
        model=model,
@@ -450,7 +450,7 @@ Advanced Usage with PyTorchVisualizer
 
 .. code-block:: python
 
-   from pytorch_graph import PyTorchVisualizer
+   from pytorch-graph import PyTorchVisualizer
 
    # Create visualizer with custom settings
    visualizer = PyTorchVisualizer(

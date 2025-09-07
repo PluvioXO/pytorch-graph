@@ -82,7 +82,7 @@ Verify your installation:
 .. code-block:: python
 
    import torch
-   from pytorch_graph import generate_architecture_diagram
+   from pytorch-graph import generate_architecture_diagram
    
    # Create a simple model
    model = torch.nn.Sequential(

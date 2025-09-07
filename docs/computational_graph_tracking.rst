@@ -31,7 +31,7 @@ Track a computational graph with the convenience function:
 
    import torch
    import torch.nn as nn
-   from pytorch_graph import track_computational_graph
+   from pytorch-graph import track_computational_graph
 
    model = nn.Sequential(
        nn.Linear(784, 128),
@@ -60,7 +60,7 @@ Use the ComputationalGraphTracker class for full control:
 
 .. code-block:: python
 
-   from pytorch_graph import ComputationalGraphTracker
+   from pytorch-graph import ComputationalGraphTracker
 
    # Create tracker with custom settings
    tracker = ComputationalGraphTracker(
@@ -104,7 +104,7 @@ Get detailed analysis of your computational graph:
 
 .. code-block:: python
 
-   from pytorch_graph import analyze_computational_graph
+   from pytorch-graph import analyze_computational_graph
 
    # Comprehensive analysis
    analysis = analyze_computational_graph(

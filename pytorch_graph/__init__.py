@@ -5,7 +5,7 @@ This package provides tools to visualize PyTorch neural networks in professional
 diagrams with comprehensive layer analysis and data flow visualization.
 """
 
-__version__ = "0.2.0"
+__version__ = "0.2.2"
 __author__ = "PyTorch Graph Team"
 __email__ = "contact@maxnicholson011@gmail.com"
 
@@ -127,7 +127,7 @@ def compare_models(models, names=None, input_shapes=None, renderer='plotly', **k
     visualizer = PyTorchVisualizer(renderer=renderer)
     return visualizer.compare_models(models, names, input_shapes, **kwargs)
 
-def create_architecture_report(model, input_shape=None, output_path="pytorch_graph_report.html"):
+def create_architecture_report(model, input_shape=None, output_path="pytorch-graph_report.html"):
     """
     Create a comprehensive HTML report of the PyTorch model architecture.
     

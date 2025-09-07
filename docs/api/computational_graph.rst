@@ -6,36 +6,36 @@ This module provides comprehensive computational graph tracking and visualizatio
 Core Functions
 --------------
 
-.. autofunction:: pytorch_graph.track_computational_graph
+.. autofunction:: pytorch-graph.track_computational_graph
 
-.. autofunction:: pytorch_graph.analyze_computational_graph
+.. autofunction:: pytorch-graph.analyze_computational_graph
 
-.. autofunction:: pytorch_graph.track_computational_graph_execution
+.. autofunction:: pytorch-graph.track_computational_graph_execution
 
-.. autofunction:: pytorch_graph.analyze_computational_graph_execution
+.. autofunction:: pytorch-graph.analyze_computational_graph_execution
 
-.. autofunction:: pytorch_graph.visualize_computational_graph
+.. autofunction:: pytorch-graph.visualize_computational_graph
 
-.. autofunction:: pytorch_graph.export_computational_graph
+.. autofunction:: pytorch-graph.export_computational_graph
 
-.. autofunction:: pytorch_graph.save_computational_graph_png
+.. autofunction:: pytorch-graph.save_computational_graph_png
 
 Classes
 -------
 
-.. autoclass:: pytorch_graph.ComputationalGraphTracker
+.. autoclass:: pytorch-graph.ComputationalGraphTracker
    :members:
    :undoc-members:
 
-.. autoclass:: pytorch_graph.GraphNode
+.. autoclass:: pytorch-graph.GraphNode
    :members:
    :undoc-members:
 
-.. autoclass:: pytorch_graph.GraphEdge
+.. autoclass:: pytorch-graph.GraphEdge
    :members:
    :undoc-members:
 
-.. autoclass:: pytorch_graph.OperationType
+.. autoclass:: pytorch-graph.OperationType
    :members:
    :undoc-members:
 
@@ -69,7 +69,7 @@ track_computational_graph
 
       import torch
       import torch.nn as nn
-      from pytorch_graph import track_computational_graph
+      from pytorch-graph import track_computational_graph
 
       model = nn.Sequential(
           nn.Linear(784, 128),
@@ -113,7 +113,7 @@ analyze_computational_graph
    
    .. code-block:: python
 
-      from pytorch_graph import analyze_computational_graph
+      from pytorch-graph import analyze_computational_graph
 
       analysis = analyze_computational_graph(
           model=model,
@@ -180,7 +180,7 @@ visualize_computational_graph
    
    .. code-block:: python
 
-      from pytorch_graph import visualize_computational_graph
+      from pytorch-graph import visualize_computational_graph
 
       fig = visualize_computational_graph(
           model=model,
@@ -213,7 +213,7 @@ export_computational_graph
    
    .. code-block:: python
 
-      from pytorch_graph import export_computational_graph
+      from pytorch-graph import export_computational_graph
 
       filepath = export_computational_graph(
           model=model,
@@ -251,7 +251,7 @@ save_computational_graph_png
    
    .. code-block:: python
 
-      from pytorch_graph import save_computational_graph_png
+      from pytorch-graph import save_computational_graph_png
 
       png_path = save_computational_graph_png(
           model=model,
@@ -415,7 +415,7 @@ Basic Computational Graph Tracking
 
    import torch
    import torch.nn as nn
-   from pytorch_graph import track_computational_graph
+   from pytorch-graph import track_computational_graph
 
    model = nn.Sequential(
        nn.Linear(784, 128),
@@ -444,7 +444,7 @@ Advanced Usage with ComputationalGraphTracker
 
 .. code-block:: python
 
-   from pytorch_graph import ComputationalGraphTracker
+   from pytorch-graph import ComputationalGraphTracker
 
    # Create tracker with custom settings
    tracker = ComputationalGraphTracker(
@@ -486,7 +486,7 @@ Graph Analysis
 
 .. code-block:: python
 
-   from pytorch_graph import analyze_computational_graph
+   from pytorch-graph import analyze_computational_graph
 
    # Comprehensive analysis
    analysis = analyze_computational_graph(
@@ -531,7 +531,7 @@ Visualization
 
 .. code-block:: python
 
-   from pytorch_graph import visualize_computational_graph
+   from pytorch-graph import visualize_computational_graph
 
    # Create interactive visualization
    fig = visualize_computational_graph(
@@ -542,7 +542,7 @@ Visualization
    fig.show()
 
    # Save as PNG
-   from pytorch_graph import save_computational_graph_png
+   from pytorch-graph import save_computational_graph_png
 
    png_path = save_computational_graph_png(
        model=model,

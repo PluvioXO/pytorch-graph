@@ -21,7 +21,7 @@ Create a simple neural network and visualize its architecture:
 
    import torch
    import torch.nn as nn
-   from pytorch_graph import generate_architecture_diagram
+   from pytorch-graph import generate_architecture_diagram
 
    # Define a simple model
    model = nn.Sequential(
@@ -50,7 +50,7 @@ Track the complete computational graph of your model:
 
 .. code-block:: python
 
-   from pytorch_graph import track_computational_graph
+   from pytorch-graph import track_computational_graph
 
    # Create input tensor
    input_tensor = torch.randn(1, 784, requires_grad=True)
@@ -80,7 +80,7 @@ Analyze your model's structure and performance:
 
 .. code-block:: python
 
-   from pytorch_graph import analyze_model, analyze_computational_graph
+   from pytorch-graph import analyze_model, analyze_computational_graph
 
    # Analyze model structure
    model_analysis = analyze_model(model, input_shape=(1, 784))
@@ -101,7 +101,7 @@ For more control, use the ComputationalGraphTracker class directly:
 
 .. code-block:: python
 
-   from pytorch_graph import ComputationalGraphTracker
+   from pytorch-graph import ComputationalGraphTracker
 
    # Create tracker with custom settings
    tracker = ComputationalGraphTracker(
@@ -178,7 +178,7 @@ Here's a complete example with a CNN:
 
    import torch
    import torch.nn as nn
-   from pytorch_graph import generate_architecture_diagram, track_computational_graph
+   from pytorch-graph import generate_architecture_diagram, track_computational_graph
 
    # Define CNN
    cnn_model = nn.Sequential(
