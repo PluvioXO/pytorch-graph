@@ -146,6 +146,7 @@ Documentation Contents
    :maxdepth: 2
    :caption: API Reference
 
+   api/main_module
    api/architecture
    api/computational_graph
    api/model_analysis
