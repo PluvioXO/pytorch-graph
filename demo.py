@@ -89,9 +89,10 @@ def demo_architecture_diagrams():
             input_shape=input_shape,
             output_path=output_path,
             title="CNN Architecture (Research Paper Style)",
-            style="research_paper"
+            style="research_paper",
+            submission_type="arxiv"
         )
-        print(f"✅ Research diagram saved: {output_path}")
+        print(f"✅ Research diagram saved: {output_path} (arXiv profile)")
         
     except Exception as e:
         print(f"❌ Error generating diagrams: {e}")
@@ -125,9 +126,10 @@ def demo_computational_graph():
             dpi=300,
             show_legend=True,
             node_size=25,
-            font_size=12
+            font_size=12,
+            submission_type="neurips"
         )
-        print(f"✅ Computational graph saved: {output_path}")
+        print(f"✅ Computational graph saved: {output_path} (NeurIPS profile)")
         
         # Get analysis with error handling
         try:

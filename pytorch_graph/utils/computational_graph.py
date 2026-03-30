@@ -16,6 +16,8 @@ from enum import Enum
 import threading
 import traceback
 
+from .submission_styles import get_submission_style
+
 
 class OperationType(Enum):
     """Types of operations that can be tracked."""
@@ -99,11 +101,13 @@ class ComputationalGraphTracker:
         self.tensor_ops_tracked = set()
         
         # Thread safety
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
         
         # Performance tracking
         self.start_time = None
+        self.execution_time = None
         self.memory_snapshots = []
+        self.graph_source = None
         
     def start_tracking(self):
         """Start tracking the computational graph."""
@@ -140,6 +144,284 @@ class ComputationalGraphTracker:
         # Stop memory tracking
         if self.track_memory:
             self._stop_memory_tracking()
+
+    def _reset_graph_data(self):
+        """Reset tracked graph state before a fresh capture."""
+        self.nodes = {}
+        self.edges = []
+        self.node_counter = 0
+        self.execution_time = None
+        self.memory_snapshots = []
+        self.graph_source = None
+
+    def _extract_tensor_shapes(self, value: Any) -> List[Tuple[int, ...]]:
+        """Collect tensor shapes from nested tensor outputs."""
+        shapes: List[Tuple[int, ...]] = []
+
+        def collect(item: Any):
+            if torch.is_tensor(item):
+                shapes.append(tuple(item.shape))
+            elif isinstance(item, (list, tuple)):
+                for sub_item in item:
+                    collect(sub_item)
+            elif isinstance(item, dict):
+                for sub_item in item.values():
+                    collect(sub_item)
+
+        collect(value)
+        return shapes
+
+    def _collect_grad_fns(self, value: Any) -> List[Any]:
+        """Collect grad_fn handles from nested tensor outputs."""
+        grad_fns = []
+
+        def collect(item: Any):
+            if torch.is_tensor(item):
+                if item.grad_fn is not None:
+                    grad_fns.append(item.grad_fn)
+            elif isinstance(item, (list, tuple)):
+                for sub_item in item:
+                    collect(sub_item)
+            elif isinstance(item, dict):
+                for sub_item in item.values():
+                    collect(sub_item)
+
+        collect(value)
+        return grad_fns
+
+    def _normalize_operation_name(self, operation: Any) -> str:
+        """Normalize autograd node names for graph labels."""
+        name = str(operation).split("(")[0]
+        if name.startswith("<") and name.endswith(">"):
+            name = name[1:-1]
+        if " object at " in name:
+            name = name.split(" object at ")[0]
+        name = name.replace("Backward0", "Backward")
+        name = name.replace("Backward1", "Backward")
+        name = name.replace("Function", "")
+        return name or "Unknown"
+
+    def _classify_operation_family(self, name: str) -> str:
+        """Group autograd operations into a smaller set of visual families."""
+        normalized = name.lower()
+
+        if "accumulategrad" in normalized or "grad" in normalized:
+            return "gradient"
+        if "backward" in normalized:
+            return "backward"
+        if any(token in normalized for token in ["conv", "convolution"]):
+            return "convolution"
+        if any(token in normalized for token in ["addmm", "mm", "matmul", "linear"]):
+            return "linear"
+        if any(token in normalized for token in ["relu", "gelu", "sigmoid", "tanh", "silu", "softmax"]):
+            return "activation"
+        if "norm" in normalized:
+            return "normalization"
+        if "pool" in normalized:
+            return "pooling"
+        if any(token in normalized for token in ["sum", "mean", "mul", "add", "sub", "div"]):
+            return "reduction"
+        if any(token in normalized for token in ["view", "reshape", "flatten", "transpose", "permute", "cat", "slice"]):
+            return "tensor"
+        if any(token in normalized for token in ["input", "output"]):
+            return "io"
+        return "other"
+
+    def _map_family_to_operation_type(self, family: str) -> OperationType:
+        """Map rendering families back to the public operation type enum."""
+        if family == "gradient":
+            return OperationType.GRADIENT_OP
+        if family == "backward":
+            return OperationType.BACKWARD
+        if family in {"linear", "convolution", "activation", "normalization", "pooling"}:
+            return OperationType.LAYER_OP
+        if family in {"reduction", "tensor", "io"}:
+            return OperationType.TENSOR_OP
+        return OperationType.CUSTOM
+
+    def _reduce_output_to_scalar(self, output: Any) -> torch.Tensor:
+        """Reduce model outputs to a scalar tensor for autograd traversal."""
+        if torch.is_tensor(output):
+            return output.sum()
+        if isinstance(output, (list, tuple)):
+            tensors = [item for item in output if torch.is_tensor(item)]
+            if tensors:
+                total = tensors[0].sum()
+                for item in tensors[1:]:
+                    total = total + item.sum()
+                return total
+        if isinstance(output, dict):
+            tensors = [item for item in output.values() if torch.is_tensor(item)]
+            if tensors:
+                total = tensors[0].sum()
+                for item in tensors[1:]:
+                    total = total + item.sum()
+                return total
+        raise TypeError("Unsupported output type for computational graph capture")
+
+    def _capture_memory_snapshot(self) -> Optional[Dict[str, int]]:
+        """Capture a memory snapshot when CUDA is available."""
+        if not (self.track_memory and torch.cuda.is_available()):
+            return None
+
+        memory_stats = torch.cuda.memory_stats()
+        return {
+            'peak_allocated': memory_stats.get('allocated_bytes.all.peak', 0),
+            'current_allocated': memory_stats.get('allocated_bytes.all.current', 0),
+            'peak_reserved': memory_stats.get('reserved_bytes.all.peak', 0),
+            'current_reserved': memory_stats.get('reserved_bytes.all.current', 0),
+        }
+
+    def _build_graph_from_autograd(self, loss: torch.Tensor, module_metadata: Dict[int, Dict[str, Any]]):
+        """Populate GraphNode and GraphEdge instances from an autograd root."""
+        operations: Dict[str, GraphNode] = {}
+        edges: Dict[Tuple[str, str], GraphEdge] = {}
+        node_ids: Dict[int, int] = {}
+        active: Set[str] = set()
+        next_id = 0
+
+        def get_node_id(grad_fn: Any) -> str:
+            nonlocal next_id
+            key = id(grad_fn)
+            if key not in node_ids:
+                node_ids[key] = next_id
+                next_id += 1
+            return f"autograd_{node_ids[key]}"
+
+        def ensure_node(grad_fn: Any, depth: int) -> str:
+            node_id = get_node_id(grad_fn)
+            module_meta = module_metadata.get(id(grad_fn), {})
+            operation_name = self._normalize_operation_name(grad_fn)
+            family = self._classify_operation_family(operation_name)
+
+            if node_id not in operations:
+                operations[node_id] = GraphNode(
+                    id=node_id,
+                    name=operation_name,
+                    operation_type=self._map_family_to_operation_type(family),
+                    module_name=module_meta.get("module_name"),
+                    input_shapes=module_meta.get("input_shapes"),
+                    output_shapes=module_meta.get("output_shapes"),
+                    parameters=module_meta.get("parameters"),
+                    execution_time=None,
+                    memory_usage=None,
+                    metadata={
+                        "family": family,
+                        "depth": depth,
+                        "module_type": module_meta.get("module_type"),
+                    },
+                    parent_ids=[],
+                    child_ids=[],
+                    timestamp=time.time() - self.start_time if self.start_time else None,
+                )
+            else:
+                operations[node_id].metadata["depth"] = min(
+                    operations[node_id].metadata.get("depth", depth),
+                    depth,
+                )
+
+            return node_id
+
+        def add_edge(source_id: str, target_id: str):
+            if (source_id, target_id) in edges:
+                return
+
+            target_node = operations[target_id]
+            edge = GraphEdge(
+                source_id=source_id,
+                target_id=target_id,
+                edge_type="autograd_dependency",
+                tensor_shape=target_node.input_shapes[0] if target_node.input_shapes else None,
+            )
+            edges[(source_id, target_id)] = edge
+
+            if target_id not in operations[source_id].child_ids:
+                operations[source_id].child_ids.append(target_id)
+            if source_id not in operations[target_id].parent_ids:
+                operations[target_id].parent_ids.append(source_id)
+
+        def traverse(grad_fn: Any, depth: int = 0):
+            if grad_fn is None:
+                return
+
+            node_id = ensure_node(grad_fn, depth)
+            if node_id in active:
+                return
+
+            active.add(node_id)
+            for next_fn, _ in getattr(grad_fn, "next_functions", []):
+                if next_fn is None:
+                    continue
+
+                parent_id = ensure_node(next_fn, depth + 1)
+                add_edge(parent_id, node_id)
+                traverse(next_fn, depth + 1)
+            active.remove(node_id)
+
+        traverse(loss.grad_fn)
+
+        ordered_nodes = sorted(
+            operations.values(),
+            key=lambda node: (
+                node.metadata.get("depth", 0) if node.metadata else 0,
+                node.id,
+            ),
+        )
+
+        self.nodes = {node.id: node for node in ordered_nodes}
+        self.edges = sorted(edges.values(), key=lambda edge: (edge.source_id, edge.target_id))
+        self.graph_source = "autograd"
+
+    def capture_execution(self, input_tensor: torch.Tensor) -> "ComputationalGraphTracker":
+        """Capture a real autograd graph for a model execution."""
+        self._reset_graph_data()
+        self.input_tensor = input_tensor
+        self.start_time = time.time()
+
+        if self.track_memory and torch.cuda.is_available():
+            torch.cuda.reset_peak_memory_stats()
+
+        tracked_input = input_tensor.detach().clone()
+        if tracked_input.is_floating_point() or tracked_input.is_complex():
+            tracked_input.requires_grad_(True)
+
+        module_metadata: Dict[int, Dict[str, Any]] = {}
+        hooks = []
+
+        def create_hook(module_name: str):
+            def hook(module, inputs, output):
+                metadata = {
+                    "module_name": module_name,
+                    "module_type": type(module).__name__,
+                    "input_shapes": self._extract_tensor_shapes(inputs),
+                    "output_shapes": self._extract_tensor_shapes(output),
+                    "parameters": {
+                        "count": sum(parameter.numel() for parameter in module.parameters()),
+                    },
+                }
+                for grad_fn in self._collect_grad_fns(output):
+                    module_metadata[id(grad_fn)] = metadata
+            return hook
+
+        for module_name, module in self.model.named_modules():
+            if len(list(module.children())) == 0:
+                hooks.append(module.register_forward_hook(create_hook(module_name)))
+
+        try:
+            output = self.model(tracked_input)
+            loss = self._reduce_output_to_scalar(output)
+            self.execution_time = time.time() - self.start_time if self.track_timing else None
+
+            memory_snapshot = self._capture_memory_snapshot()
+            if memory_snapshot is not None:
+                self.memory_snapshots.append(memory_snapshot)
+
+            self._build_graph_from_autograd(loss, module_metadata)
+        finally:
+            for hook in hooks:
+                hook.remove()
+
+        return self
     
     def _register_module_hooks(self):
         """Register hooks for all modules in the model."""
@@ -152,9 +434,14 @@ class ComputationalGraphTracker:
                 self.hooks.append(forward_hook)
                 
                 # Backward hook
-                backward_hook = module.register_backward_hook(
-                    self._create_backward_hook(name)
-                )
+                if hasattr(module, "register_full_backward_hook"):
+                    backward_hook = module.register_full_backward_hook(
+                        self._create_backward_hook(name)
+                    )
+                else:
+                    backward_hook = module.register_backward_hook(
+                        self._create_backward_hook(name)
+                    )
                 self.hooks.append(backward_hook)
     
     def _create_forward_hook(self, module_name: str):
@@ -256,22 +543,23 @@ class ComputationalGraphTracker:
         self.original_methods['tensor_add'] = torch.Tensor.__add__
         self.original_methods['tensor_mul'] = torch.Tensor.__mul__
         self.original_methods['tensor_matmul'] = torch.Tensor.__matmul__
+        tracker = self
         
         # Override tensor operations
-        def tracked_add(self, other):
-            if self.is_tracking:
-                self._track_tensor_operation('add', self, other)
-            return self.original_methods['tensor_add'](self, other)
+        def tracked_add(tensor, other):
+            if tracker.is_tracking:
+                tracker._track_tensor_operation('add', tensor, other)
+            return tracker.original_methods['tensor_add'](tensor, other)
         
-        def tracked_mul(self, other):
-            if self.is_tracking:
-                self._track_tensor_operation('mul', self, other)
-            return self.original_methods['tensor_mul'](self, other)
+        def tracked_mul(tensor, other):
+            if tracker.is_tracking:
+                tracker._track_tensor_operation('mul', tensor, other)
+            return tracker.original_methods['tensor_mul'](tensor, other)
         
-        def tracked_matmul(self, other):
-            if self.is_tracking:
-                self._track_tensor_operation('matmul', self, other)
-            return self.original_methods['tensor_matmul'](self, other)
+        def tracked_matmul(tensor, other):
+            if tracker.is_tracking:
+                tracker._track_tensor_operation('matmul', tensor, other)
+            return tracker.original_methods['tensor_matmul'](tensor, other)
         
         # Apply overrides
         torch.Tensor.__add__ = tracked_add
@@ -382,8 +670,11 @@ class ComputationalGraphTracker:
                 'total_edges': len(self.edges),
                 'operation_types': defaultdict(int),
                 'module_types': defaultdict(int),
-                'execution_time': time.time() - self.start_time if self.start_time else None,
+                'execution_time': self.execution_time if self.execution_time is not None else (
+                    time.time() - self.start_time if self.start_time else None
+                ),
                 'memory_usage': self.memory_snapshots[-1] if self.memory_snapshots else None,
+                'graph_source': self.graph_source,
             }
             
             # Count operation types
@@ -405,13 +696,33 @@ class ComputationalGraphTracker:
                         summary['module_types'][module_type] += 1
             
             return summary
+
+    def _serialize_node(self, node: Any) -> Dict[str, Any]:
+        """Serialize GraphNode or dictionary nodes into export-friendly dictionaries."""
+        if isinstance(node, GraphNode):
+            data = asdict(node)
+            if isinstance(node.operation_type, Enum):
+                data['operation_type'] = node.operation_type.value
+            return data
+
+        data = dict(node)
+        op_type = data.get('operation_type')
+        if isinstance(op_type, Enum):
+            data['operation_type'] = op_type.value
+        return data
+
+    def _serialize_edge(self, edge: Any) -> Dict[str, Any]:
+        """Serialize GraphEdge or dictionary edges into export-friendly dictionaries."""
+        if isinstance(edge, GraphEdge):
+            return asdict(edge)
+        return dict(edge)
     
     def get_graph_data(self) -> Dict[str, Any]:
         """Get the complete graph data for visualization."""
         with self.lock:
             return {
-                'nodes': [asdict(node) for node in self.nodes.values()],
-                'edges': [asdict(edge) for edge in self.edges],
+                'nodes': [self._serialize_node(node) for node in self.nodes.values()],
+                'edges': [self._serialize_edge(edge) for edge in self.edges],
                 'summary': self.get_graph_summary()
             }
     
@@ -447,10 +758,10 @@ class ComputationalGraphTracker:
     
     def save_graph_png(self, filepath: str, width: int = 1200, height: int = 800, 
                        dpi: int = 300, show_legend: bool = True, 
-                       node_size: int = 20, font_size: int = 10) -> str:
+                       node_size: int = 20, font_size: int = 10,
+                       submission_type: Optional[str] = None) -> str:
         """
-        Save the computational graph as a PNG image with enhanced visualization.
-        Uses a simple autograd graph approach without hooks to avoid PyTorch warnings.
+        Save the computational graph as a PNG image with a publication-oriented layout.
         
         Args:
             filepath: Output file path
@@ -460,6 +771,7 @@ class ComputationalGraphTracker:
             show_legend: Whether to show legend (positioned outside plot area)
             node_size: Size of nodes in the graph
             font_size: Font size for labels
+            submission_type: Publication target profile
             
         Returns:
             Path to the saved PNG file
@@ -467,337 +779,267 @@ class ComputationalGraphTracker:
         try:
             import matplotlib.pyplot as plt
             import matplotlib.patches as patches
-            from matplotlib.patches import FancyBboxPatch
-            import numpy as np
+            from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
             import warnings
+            import textwrap
             
             # Suppress PyTorch warnings
             warnings.filterwarnings("ignore", category=FutureWarning, module="torch")
             
         except ImportError:
             raise ImportError("Matplotlib is required for PNG generation. Install with: pip install matplotlib")
-        
-        # Create a computational graph from autograd with proper cycle detection
-        def create_autograd_graph(model, input_tensor):
-            """Create a computational graph from autograd with proper cycle detection and limits."""
-            try:
-                # Run forward pass with gradients enabled
-                input_tensor.requires_grad_(True)
-                output = model(input_tensor)
-                loss = output.sum()
-                
-                # Get autograd graph nodes with proper cycle detection
-                operations = []
-                visited = set()
-                node_id_map = {}  # Map grad_fn to unique IDs
-                next_id = 0
-                
-                def get_node_id(grad_fn):
-                    nonlocal next_id
-                    if grad_fn not in node_id_map:
-                        node_id_map[grad_fn] = next_id
-                        next_id += 1
-                    return node_id_map[grad_fn]
-                
-                def traverse_autograd_graph(grad_fn, depth=0):
-                    # Only prevent infinite recursion with cycle detection
-                    if grad_fn is None or grad_fn in visited:
-                        return
-                    
-                    visited.add(grad_fn)
-                    
-                    # Get operation name from grad_fn
-                    op_name = str(grad_fn).split('(')[0] if grad_fn else 'Unknown'
-                    # Clean up the name
-                    if 'Backward' in op_name:
-                        op_name = op_name.replace('Backward', '')
-                    if 'Function' in op_name:
-                        op_name = op_name.replace('Function', '')
-                    
-                    operations.append({
-                        'name': op_name,
-                        'depth': depth,
-                        'grad_fn': grad_fn,
-                        'node_id': get_node_id(grad_fn)
-                    })
-                    
-                    # Traverse next functions with cycle detection only
-                    if hasattr(grad_fn, 'next_functions'):
-                        for next_fn, _ in grad_fn.next_functions:
-                            if next_fn is not None and next_fn not in visited:
-                                traverse_autograd_graph(next_fn, depth + 1)
-                
-                # Start traversal from the loss
-                traverse_autograd_graph(loss.grad_fn)
-                
-                # If we got no operations, try a more comprehensive approach
-                if not operations:
-                    # Enhanced fallback: create operations from model structure with more detail
-                    operations.append({'name': 'Input', 'depth': 0, 'grad_fn': None, 'node_id': 0})
-                    
-                    layer_count = 0
-                    for name, module in model.named_modules():
-                        if len(list(module.children())) == 0:  # Leaf modules only
-                            layer_count += 1
-                            # Add forward operation
-                            operations.append({
-                                'name': f'{type(module).__name__}',
-                                'depth': layer_count,
-                                'grad_fn': None,
-                                'node_id': layer_count
-                            })
-                            # Add backward operation for training
-                            operations.append({
-                                'name': f'{type(module).__name__}Backward',
-                                'depth': layer_count + 1,
-                                'grad_fn': None,
-                                'node_id': layer_count + 1
-                            })
-                            layer_count += 1
-                    
-                    operations.append({'name': 'Output', 'depth': layer_count, 'grad_fn': None, 'node_id': layer_count})
-                
-                return operations
-                
-            except Exception as e:
-                print(f"Warning: Could not create autograd graph: {e}")
-                # Enhanced fallback to comprehensive model structure
-                operations = []
-                operations.append({'name': 'Input', 'depth': 0, 'grad_fn': None, 'node_id': 0})
-                
-                layer_count = 0
-                for name, module in model.named_modules():
-                    if len(list(module.children())) == 0:  # Leaf modules only
-                        layer_count += 1
-                        # Add forward operation
-                        operations.append({
-                            'name': f'{type(module).__name__}',
-                            'depth': layer_count,
-                            'grad_fn': None,
-                            'node_id': layer_count
-                        })
-                        # Add backward operation for training
-                        operations.append({
-                            'name': f'{type(module).__name__}Backward',
-                            'depth': layer_count + 1,
-                            'grad_fn': None,
-                            'node_id': layer_count + 1
-                        })
-                        layer_count += 1
-                
-                operations.append({'name': 'Output', 'depth': layer_count, 'grad_fn': None, 'node_id': layer_count})
-                return operations
-        
-        # Create autograd graph
-        operations = create_autograd_graph(self.model, getattr(self, 'input_tensor', None))
-        
-        if not operations:
-            # Final fallback: create a comprehensive representation
-            operations = [{'name': 'Input', 'depth': 0, 'grad_fn': None, 'node_id': 0}]
-            
-            # Add all model layers
-            layer_count = 0
-            for name, module in self.model.named_modules():
-                if len(list(module.children())) == 0:  # Leaf modules only
-                    layer_count += 1
-                    operations.append({
-                        'name': f'{type(module).__name__}',
-                        'depth': layer_count,
-                        'grad_fn': None,
-                        'node_id': layer_count
-                    })
-            
-            operations.append({'name': 'Output', 'depth': layer_count + 1, 'grad_fn': None, 'node_id': layer_count + 1})
-        
-        # Enhanced color scheme
-        colors = {
-            'linear': '#2E7D32',       # Dark green
-            'relu': '#1565C0',         # Dark blue
-            'conv': '#AD1457',         # Dark pink
-            'batchnorm': '#00695C',    # Dark cyan
-            'maxpool': '#558B2F',      # Dark olive
-            'dropout': '#5D4037',      # Dark brown
-            'sum': '#6A1B9A',          # Dark purple
-            'mean': '#6A1B9A',         # Dark purple
-            'view': '#37474F',         # Dark blue-gray
-            'flatten': '#37474F',      # Dark blue-gray
-            'addmm': '#2E7D32',        # Dark green
-            'backward': '#C62828',     # Dark red
-            'accumulategrad': '#37474F' # Dark gray
-        }
-        
-        # Create figure with enhanced size to accommodate legend
-        fig_width = width/100 if not show_legend else (width/100) * 1.4
-        fig, ax = plt.subplots(figsize=(fig_width, height/100), dpi=dpi)
-        
-        # Compact positioning - remove empty depth levels for continuous flow
-        positions = {}
-        
+        if (not self.nodes or self.graph_source != "autograd") and getattr(self, "input_tensor", None) is not None:
+            self.capture_execution(self.input_tensor)
+
+        graph_data = self.get_graph_data()
+        nodes = graph_data["nodes"]
+        edges = graph_data["edges"]
+
+        operations = []
+        for node in nodes:
+            metadata = node.get("metadata") or {}
+            name = node.get("name", "Unknown")
+            operations.append({
+                "node_id": node.get("id"),
+                "name": name,
+                "depth": metadata.get("depth", node.get("depth", 0)),
+                "family": metadata.get("family", self._classify_operation_family(name)),
+            })
+
+        graph_edges = [
+            (edge.get("source_id"), edge.get("target_id"))
+            for edge in edges
+            if edge.get("source_id") and edge.get("target_id")
+        ]
+
         if not operations:
             return filepath
-        
-        # Group operations by depth and create compact layout
-        depth_groups = {}
-        for i, op in enumerate(operations):
-            depth = op['depth']
-            if depth not in depth_groups:
-                depth_groups[depth] = []
-            depth_groups[depth].append((i, op))
-        
-        # Create compact depth mapping (remove gaps)
+
+        submission_profile = get_submission_style(submission_type)
+        profile_label = submission_profile["label"]
+        title_color = submission_profile["title_color"]
+        subtitle_color = submission_profile["subtitle_color"]
+        box_fill = submission_profile["box_fill"]
+        box_border = submission_profile["box_border"]
+        shadow_color = submission_profile["shadow_color"]
+        arrow_color = submission_profile["arrow_color"]
+        legend_frame = submission_profile["legend_frame"]
+        note_color = submission_profile["note_color"]
+
+        family_palette = {
+            "linear": {"accent": submission_profile["family_palette"]["Dense"], "label": "Linear"},
+            "convolution": {"accent": submission_profile["family_palette"]["Convolution"], "label": "Convolution"},
+            "activation": {"accent": submission_profile["family_palette"]["Activation"], "label": "Activation"},
+            "normalization": {"accent": submission_profile["family_palette"]["Normalization"], "label": "Normalization"},
+            "pooling": {"accent": submission_profile["family_palette"]["Pooling"], "label": "Pooling"},
+            "reduction": {"accent": submission_profile["family_palette"]["Other"], "label": "Tensor Op"},
+            "tensor": {"accent": submission_profile["family_palette"]["Tensor Shape"], "label": "Tensor Shape"},
+            "backward": {"accent": submission_profile["family_palette"]["Dense"], "label": "Backward"},
+            "gradient": {"accent": submission_profile["family_palette"]["Regularization"], "label": "Gradient"},
+            "io": {"accent": submission_profile["family_palette"]["Recurrent"], "label": "Input / Output"},
+            "other": {"accent": submission_profile["family_palette"]["Other"], "label": "Other"},
+        }
+
+        depth_groups = defaultdict(list)
+        for operation in operations:
+            depth_groups[operation["depth"]].append(operation)
+
         compact_depths = sorted(depth_groups.keys())
-        depth_mapping = {old_depth: new_depth for new_depth, old_depth in enumerate(compact_depths)}
-        
-        # Position nodes with compact vertical spacing
-        for old_depth, ops in depth_groups.items():
-            compact_depth = depth_mapping[old_depth]
-            y = 10 - compact_depth * 2.0  # Compact vertical spacing
-            num_ops = len(ops)
-            
-            # Calculate spacing based on number of operations
-            if num_ops == 1:
-                x_spacing = 0
-                start_x = 0
-            else:
-                x_spacing = max(5.5, 7.0 / num_ops)  # Minimum spacing of 5.5 units for wider nodes
-                total_width = (num_ops - 1) * x_spacing
-                start_x = -total_width / 2
-            
-            for j, (i, op) in enumerate(ops):
-                x = start_x + j * x_spacing
-                positions[i] = (x, y)
-        
-        # Draw nodes
-        for i, op in enumerate(operations):
-            if i in positions:
-                x, y = positions[i]
-                op_name = op['name'].lower()
-                
-                # Determine color
-                color = '#424242'  # Default gray
-                for key, col in colors.items():
-                    if key in op_name:
-                        color = col
-                        break
-                
-                # Create node rectangle with increased width for longer names
-                rect = FancyBboxPatch((x-2.0, y-0.6), 4.0, 1.2,
-                                    boxstyle='round,pad=0.2', 
-                                    facecolor=color, alpha=0.95, 
-                                    edgecolor='white', linewidth=2)
-                ax.add_patch(rect)
-                
-                # Add text with full method/object names
-                full_name = op['name']
-                # Clean up the name for better readability
-                if full_name.startswith('<') and full_name.endswith('>'):
-                    # Remove angle brackets and clean up
-                    clean_name = full_name[1:-1]
-                    if 'object at 0x' in clean_name:
-                        # Extract just the class name for T0 objects
-                        parts = clean_name.split(' ')
-                        if len(parts) > 0:
-                            clean_name = parts[0]
-                    full_name = clean_name
-                
-                # Use full name without truncation
-                ax.text(x, y+0.3, full_name, ha='center', va='center', 
-                       fontsize=font_size, weight='bold', color='white')
-                ax.text(x, y-0.3, f'Depth: {op["depth"]}', ha='center', va='center', 
-                       fontsize=8, color='white')
-        
-        # Draw edges with proper arrow positioning
-        for i in range(len(operations) - 1):
-            if i in positions and (i + 1) in positions:
-                start = positions[i]
-                end = positions[i + 1]
-                
-                # Calculate arrow positions to connect node edges properly
-                # Get the direction vector
-                dx = end[0] - start[0]
-                dy = end[1] - start[1]
-                distance = (dx**2 + dy**2)**0.5
-                
-                if distance > 0:
-                    # Normalize direction vector
-                    dx_norm = dx / distance
-                    dy_norm = dy / distance
-                    
-                    # Calculate node boundary positions based on direction
-                    # Node dimensions: width=4.0, height=1.2, so half-width=2.0, half-height=0.6
-                    
-                    # Determine which edge of the start node to connect from
-                    if abs(dy_norm) > abs(dx_norm):  # Primarily vertical movement
-                        if dy_norm > 0:  # Moving up
-                            start_arrow = (start[0], start[1] + 0.6)  # Top of start node
-                        else:  # Moving down
-                            start_arrow = (start[0], start[1] - 0.6)  # Bottom of start node
-                    else:  # Primarily horizontal movement
-                        if dx_norm > 0:  # Moving right
-                            start_arrow = (start[0] + 2.0, start[1])  # Right edge of start node
-                        else:  # Moving left
-                            start_arrow = (start[0] - 2.0, start[1])  # Left edge of start node
-                    
-                    # Determine which edge of the end node to connect to
-                    if abs(dy_norm) > abs(dx_norm):  # Primarily vertical movement
-                        if dy_norm > 0:  # Moving up
-                            end_arrow = (end[0], end[1] - 0.6)  # Bottom of end node
-                        else:  # Moving down
-                            end_arrow = (end[0], end[1] + 0.6)  # Top of end node
-                    else:  # Primarily horizontal movement
-                        if dx_norm > 0:  # Moving right
-                            end_arrow = (end[0] - 2.0, end[1])  # Left edge of end node
-                        else:  # Moving left
-                            end_arrow = (end[0] + 2.0, end[1])  # Right edge of end node
-                    
-                    # Only draw arrow if there's enough space between nodes
-                    if distance > 3.0:  # Minimum distance to avoid overlapping arrows with wider nodes
-                        ax.annotate('', xy=end_arrow, xytext=start_arrow,
-                                   arrowprops=dict(arrowstyle='->', color='#333333', 
-                                                 alpha=0.8, lw=2, shrinkA=0, shrinkB=0))
-        
-        # Set up the plot
-        if positions:
-            all_x = [pos[0] for pos in positions.values()]
-            all_y = [pos[1] for pos in positions.values()]
-            ax.set_xlim(min(all_x) - 3, max(all_x) + 3)
-            ax.set_ylim(min(all_y) - 2, max(all_y) + 2)
-        else:
-            ax.set_xlim(0, 10)
-            ax.set_ylim(0, 10)
-        
-        ax.axis('off')
-        
-        # Add title
-        plt.title('PyTorch Computational Graph\n(Enhanced Visualization)', 
-                 fontsize=18, weight='bold', pad=30)
-        
-        # Add legend with proper positioning
+        depth_mapping = {depth: index for index, depth in enumerate(compact_depths)}
+        max_compact_depth = max(depth_mapping.values()) if depth_mapping else 0
+
+        node_width = 2.75
+        node_height = 1.0
+        x_spacing = 3.35
+        y_spacing = 1.55
+        positions = {}
+
+        for original_depth in compact_depths:
+            compact_depth = depth_mapping[original_depth]
+            x_pos = 1.5 + (max_compact_depth - compact_depth) * x_spacing
+            group = depth_groups[original_depth]
+            total_height = (len(group) - 1) * y_spacing
+            start_y = total_height / 2
+
+            for row_index, operation in enumerate(group):
+                y_pos = start_y - row_index * y_spacing
+                positions[operation["node_id"]] = (x_pos, y_pos)
+
+        present_families = []
+        for operation in operations:
+            family = operation["family"]
+            if family not in present_families:
+                present_families.append(family)
+
+        fig_width = max(width / 100, 8.5 + len(compact_depths) * 1.25 + (2.2 if show_legend else 0))
+        fig_height = max(height / 100, 4.8 + max(len(group) for group in depth_groups.values()) * 0.5)
+        fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi)
+        fig.patch.set_facecolor("white")
+        ax.set_facecolor("white")
+
+        for source_id, target_id in graph_edges:
+            if source_id not in positions or target_id not in positions:
+                continue
+
+            start_x, start_y = positions[source_id]
+            end_x, end_y = positions[target_id]
+            curvature = 0.12 if abs(start_y - end_y) > 0.15 else 0.0
+            if end_y < start_y:
+                curvature *= -1
+
+            arrow = FancyArrowPatch(
+                (start_x + node_width / 2, start_y),
+                (end_x - node_width / 2, end_y),
+                arrowstyle="-|>",
+                mutation_scale=max(10, node_size // 2),
+                linewidth=1.1,
+                color=arrow_color,
+                alpha=0.9,
+                connectionstyle=f"arc3,rad={curvature}",
+                shrinkA=6,
+                shrinkB=6,
+                zorder=1,
+            )
+            ax.add_patch(arrow)
+
+        for operation in operations:
+            node_id = operation["node_id"]
+            if node_id not in positions:
+                continue
+
+            x_pos, y_pos = positions[node_id]
+            family_info = family_palette.get(operation["family"], family_palette["other"])
+            accent = family_info["accent"]
+
+            shadow = FancyBboxPatch(
+                (x_pos - node_width / 2 + 0.04, y_pos - node_height / 2 - 0.05),
+                node_width,
+                node_height,
+                boxstyle="round,pad=0.06,rounding_size=0.08",
+                facecolor=shadow_color,
+                edgecolor="none",
+                alpha=0.35,
+                zorder=2,
+            )
+            ax.add_patch(shadow)
+
+            node = FancyBboxPatch(
+                (x_pos - node_width / 2, y_pos - node_height / 2),
+                node_width,
+                node_height,
+                boxstyle="round,pad=0.06,rounding_size=0.08",
+                facecolor=box_fill,
+                edgecolor=box_border,
+                linewidth=0.9,
+                zorder=3,
+            )
+            ax.add_patch(node)
+
+            accent_bar = patches.Rectangle(
+                (x_pos - node_width / 2, y_pos + node_height / 2 - 0.14),
+                node_width,
+                0.14,
+                facecolor=accent,
+                edgecolor="none",
+                zorder=4,
+            )
+            ax.add_patch(accent_bar)
+
+            label = textwrap.fill(operation["name"], width=18)
+            ax.text(
+                x_pos,
+                y_pos + 0.06,
+                label,
+                ha="center",
+                va="center",
+                fontsize=font_size,
+                fontweight="bold",
+                color=title_color,
+                zorder=5,
+            )
+            ax.text(
+                x_pos,
+                y_pos - node_height / 2 + 0.18,
+                family_info["label"].upper(),
+                ha="center",
+                va="center",
+                fontsize=max(7, font_size - 2),
+                fontweight="bold",
+                color=accent,
+                zorder=5,
+            )
+
+        all_x = [position[0] for position in positions.values()]
+        all_y = [position[1] for position in positions.values()]
+        legend_padding = 2.8 if show_legend else 1.0
+        ax.set_xlim(min(all_x) - node_width, max(all_x) + node_width + legend_padding)
+        ax.set_ylim(min(all_y) - 1.5, max(all_y) + 1.5)
+        ax.axis("off")
+
+        model_name = type(self.model).__name__
+        ax.text(
+            0.0,
+            1.05,
+            f"{model_name} Autograd Graph",
+            transform=ax.transAxes,
+            fontsize=16,
+            fontweight="bold",
+            ha="left",
+            va="bottom",
+            color=title_color,
+        )
+        ax.text(
+            0.0,
+            1.01,
+            f"{len(operations)} nodes | {len(graph_edges)} dependencies | {profile_label} profile",
+            transform=ax.transAxes,
+            fontsize=9.5,
+            ha="left",
+            va="bottom",
+            color=subtitle_color,
+        )
+
         if show_legend:
-            legend_elements = []
-            for op_type, color in colors.items():
-                if any(op_type in op['name'].lower() for op in operations):
-                    label = op_type.replace('_', ' ').title()
-                    if op_type == 'addmm':
-                        label = 'Linear Operations'
-                    elif op_type == 'backward':
-                        label = 'Backward Operations'
-                    elif op_type == 'accumulategrad':
-                        label = 'Gradient Accumulation'
-                    
-                    legend_elements.append(patches.Patch(color=color, label=label))
-            
+            legend_elements = [
+                patches.Patch(
+                    facecolor="#FCFCFD",
+                    edgecolor=family_palette[family]["accent"],
+                    linewidth=1.2,
+                    label=family_palette[family]["label"],
+                )
+                for family in present_families
+            ]
+
             if legend_elements:
-                ax.legend(handles=legend_elements, loc='center left', 
-                         bbox_to_anchor=(1.02, 0.5), fontsize=10, framealpha=0.95)
-        
-        
-        # Save the figure
+                legend = ax.legend(
+                    handles=legend_elements,
+                    title="Operation Family",
+                    loc="upper left",
+                    bbox_to_anchor=(1.01, 0.98),
+                    frameon=True,
+                    fancybox=False,
+                    fontsize=9,
+                    title_fontsize=10,
+                    borderpad=0.6,
+                    labelspacing=0.5,
+                )
+                legend.get_frame().set_facecolor("white")
+                legend.get_frame().set_edgecolor(legend_frame)
+                legend.get_frame().set_alpha(0.98)
+
+        fig.text(
+            0.01,
+            0.01,
+            f"{profile_label} styling | autograd dependencies traced from loss = output.sum().",
+            fontsize=8,
+            color=note_color,
+        )
+
         plt.tight_layout()
-        plt.savefig(filepath, dpi=dpi, bbox_inches='tight', 
-                   facecolor='white', edgecolor='none')
+        plt.savefig(filepath, dpi=dpi, bbox_inches="tight",
+                   facecolor="white", edgecolor="none")
         plt.close()
-        
+
         return filepath
     
     def _visualize_with_plotly(self):
@@ -1019,51 +1261,40 @@ def track_computational_graph(model: nn.Module, input_tensor: torch.Tensor,
     import warnings
     warnings.filterwarnings("ignore", category=FutureWarning, module="torch")
     
-    # Create a simplified tracker that doesn't use hooks
     tracker = ComputationalGraphTracker(
         model, track_memory, track_timing, track_tensor_ops
     )
     
-    # Store input tensor for later use
     tracker.input_tensor = input_tensor
     
     try:
-        # Simple forward pass without hooks
-        with torch.no_grad():
-            output = model(input_tensor)
-        
-        # Create simple graph data
-        tracker.nodes = {}
-        tracker.edges = []
-        
-        # Add basic nodes
-        tracker.nodes['input'] = {
-            'id': 'input',
-            'name': 'Input Tensor',
-            'operation_type': 'input',
-            'depth': 0
-        }
-        
-        tracker.nodes['output'] = {
-            'id': 'output', 
-            'name': 'Output Tensor',
-            'operation_type': 'output',
-            'depth': 2
-        }
-        
-        # Add basic edges
-        tracker.edges = [
-            {'source_id': 'input', 'target_id': 'output'}
-        ]
-        
+        tracker.capture_execution(input_tensor)
     except Exception as e:
         print(f"Warning: Could not track computational graph: {e}")
         # Create minimal fallback data
+        tracker._reset_graph_data()
+        tracker.graph_source = "fallback"
         tracker.nodes = {
-            'input': {'id': 'input', 'name': 'Input', 'operation_type': 'input', 'depth': 0},
-            'output': {'id': 'output', 'name': 'Output', 'operation_type': 'output', 'depth': 1}
+            'input': GraphNode(
+                id='input',
+                name='Input Tensor',
+                operation_type=OperationType.TENSOR_OP,
+                metadata={'family': 'io', 'depth': 0},
+                parent_ids=[],
+                child_ids=['output'],
+            ),
+            'output': GraphNode(
+                id='output',
+                name='Output Tensor',
+                operation_type=OperationType.TENSOR_OP,
+                metadata={'family': 'io', 'depth': 1, 'error': str(e)},
+                parent_ids=['input'],
+                child_ids=[],
+            ),
         }
-        tracker.edges = [{'source_id': 'input', 'target_id': 'output'}]
+        tracker.edges = [
+            GraphEdge(source_id='input', target_id='output', edge_type='fallback_dependency')
+        ]
     
     return tracker
 

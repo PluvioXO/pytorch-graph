@@ -177,7 +177,8 @@ def extract_activations(model, input_tensor, layer_names=None):
     return extractor.extract(input_tensor, layer_names)
 
 def generate_architecture_diagram(model, input_shape, output_path="architecture.png", 
-                                title=None, format="png", style="flowchart"):
+                                title=None, format="png", style="flowchart",
+                                submission_type=None):
     """
     Generate an enhanced flowchart architecture diagram from a PyTorch model and save as PNG.
     
@@ -188,6 +189,7 @@ def generate_architecture_diagram(model, input_shape, output_path="architecture.
         title: Diagram title (auto-generated if None)
         format: Output format ('png' or 'txt')
         style: Diagram style ('flowchart', 'standard', or 'research_paper')
+        submission_type: Publication profile ('arxiv', 'iop', 'icml', 'neurips')
     
     Returns:
         Path to the generated diagram file
@@ -197,7 +199,7 @@ def generate_architecture_diagram(model, input_shape, output_path="architecture.
     
     if format.lower() == "png":
         try:
-            renderer = DiagramRenderer(style=style)
+            renderer = DiagramRenderer(style=style, submission_type=submission_type)
             return renderer.render_model_diagram(model, input_shape, title, output_path)
         except NameError:
             warnings.warn("Matplotlib not available. Falling back to text diagram.")
@@ -219,7 +221,7 @@ def save_architecture_diagram(model, input_shape, output_path="architecture.png"
     return generate_architecture_diagram(model, input_shape, output_path, **kwargs)
 
 def generate_research_paper_diagram(model, input_shape, output_path="model_architecture_paper.png", 
-                                   title=None):
+                                   title=None, submission_type=None):
     """
     Generate a research paper quality architecture diagram.
     
@@ -228,17 +230,18 @@ def generate_research_paper_diagram(model, input_shape, output_path="model_archi
         input_shape: Input tensor shape (tuple)
         output_path: Output file path
         title: Diagram title (auto-generated if None)
+        submission_type: Publication profile ('arxiv', 'iop', 'icml', 'neurips')
     
     Returns:
         Path to the generated diagram file
     """
     return generate_architecture_diagram(
         model, input_shape, output_path, title, 
-        format="png", style="research_paper"
+        format="png", style="research_paper", submission_type=submission_type
     )
 
 def generate_flowchart_diagram(model, input_shape, output_path="model_flowchart.png", 
-                              title=None):
+                              title=None, submission_type=None):
     """
     Generate a clean flowchart-style architecture diagram with vertical flow.
     
@@ -247,13 +250,14 @@ def generate_flowchart_diagram(model, input_shape, output_path="model_flowchart.
         input_shape: Input tensor shape (tuple)
         output_path: Output file path
         title: Diagram title (auto-generated if None)
+        submission_type: Publication profile ('arxiv', 'iop', 'icml', 'neurips')
     
     Returns:
         Path to the generated diagram file
     """
     return generate_architecture_diagram(
         model, input_shape, output_path, title, 
-        format="png", style="flowchart"
+        format="png", style="flowchart", submission_type=submission_type
     )
 
 def track_computational_graph_execution(model, input_tensor, track_memory=True, 
@@ -393,7 +397,7 @@ def export_computational_graph(model, input_tensor, filepath, format='json'):
 
 def save_computational_graph_png(model, input_tensor, filepath="computational_graph.png", 
                                 width=1200, height=800, dpi=300, show_legend=True,
-                                node_size=20, font_size=10):
+                                node_size=20, font_size=10, submission_type=None):
     """
     Save the computational graph as a high-quality PNG image.
     
@@ -407,6 +411,7 @@ def save_computational_graph_png(model, input_tensor, filepath="computational_gr
         show_legend: Whether to show legend
         node_size: Size of nodes in the graph
         font_size: Font size for labels
+        submission_type: Publication profile ('arxiv', 'iop', 'icml', 'neurips')
         
     Returns:
         Path to the saved PNG file
@@ -425,7 +430,10 @@ def save_computational_graph_png(model, input_tensor, filepath="computational_gr
         raise ImportError("PyTorch is required for computational graph PNG generation. Install with: pip install torch")
     
     tracker = track_computational_graph(model, input_tensor)
-    return tracker.save_graph_png(filepath, width, height, dpi, show_legend, node_size, font_size)
+    return tracker.save_graph_png(
+        filepath, width, height, dpi, show_legend, node_size, font_size,
+        submission_type=submission_type
+    )
 
 # Public API - Build list dynamically based on available dependencies
 __all__ = [

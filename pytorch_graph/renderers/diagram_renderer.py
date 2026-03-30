@@ -17,12 +17,14 @@ except ImportError:
     warnings.warn("Matplotlib not available. PNG diagram generation will be disabled.")
 
 from ..utils.layer_info import LayerInfo
+from ..utils.submission_styles import get_submission_style, tint_hex_color
 
 
 class DiagramRenderer:
     """Renders neural network architecture diagrams as PNG files."""
     
-    def __init__(self, width: int = 16, height: int = 10, dpi: int = 300, style: str = "standard"):
+    def __init__(self, width: int = 16, height: int = 10, dpi: int = 300,
+                 style: str = "standard", submission_type: Optional[str] = None):
         """
         Initialize diagram renderer.
         
@@ -31,6 +33,7 @@ class DiagramRenderer:
             height: Figure height in inches
             dpi: Dots per inch for output quality
             style: Rendering style ('standard', 'research_paper', or 'flowchart')
+            submission_type: Publication target profile
         """
         if not MATPLOTLIB_AVAILABLE:
             raise ImportError("Matplotlib is required for PNG diagrams. Install with: pip install matplotlib")
@@ -39,6 +42,8 @@ class DiagramRenderer:
         self.height = height
         self.dpi = dpi
         self.style = style
+        self.submission_profile = get_submission_style(submission_type)
+        self.submission_type = self.submission_profile["key"]
         
         # Configure style-specific settings
         if self.style == "research_paper":
@@ -47,6 +52,8 @@ class DiagramRenderer:
             self._setup_flowchart_style()
         else:
             self._setup_standard_style()
+
+        self.font_family = self.submission_profile["font_family"]
     
     def _setup_standard_style(self):
         """Setup standard diagram style."""
@@ -111,6 +118,10 @@ class DiagramRenderer:
         }
         self.font_family = 'sans-serif'
         self.plt_style = 'default'
+
+    def _get_profile_value(self, key: str, default: Any = None) -> Any:
+        """Read a value from the active submission profile."""
+        return self.submission_profile.get(key, default)
     
     def render_architecture_diagram(self, layers: List[LayerInfo], 
                                   connections: Dict[str, List[str]],
@@ -133,8 +144,321 @@ class DiagramRenderer:
         
         if self.style == "flowchart":
             return self._render_flowchart_diagram(layers, connections, title, output_path)
+        elif self.style == "research_paper":
+            return self._render_publication_diagram(layers, connections, title, output_path)
         else:
             return self._render_standard_diagram(layers, connections, title, output_path)
+
+    def _classify_layer_family(self, layer_type: str) -> str:
+        """Group layer types into broader visual families for cleaner legends."""
+        normalized = layer_type.lower()
+
+        if "conv" in normalized:
+            return "Convolution"
+        if any(token in normalized for token in ["linear", "bilinear"]):
+            return "Dense"
+        if any(token in normalized for token in ["relu", "gelu", "sigmoid", "tanh", "silu", "softmax"]):
+            return "Activation"
+        if "norm" in normalized:
+            return "Normalization"
+        if "pool" in normalized:
+            return "Pooling"
+        if any(token in normalized for token in ["lstm", "gru", "rnn"]):
+            return "Recurrent"
+        if any(token in normalized for token in ["dropout"]):
+            return "Regularization"
+        if any(token in normalized for token in ["flatten", "reshape"]):
+            return "Tensor Shape"
+        return "Other"
+
+    def _get_publication_accent(self, layer_type: str) -> str:
+        """Return muted accent colors that survive grayscale printing better."""
+        palette = self._get_profile_value("family_palette", {})
+        if layer_type in palette:
+            return palette[layer_type]
+        family = self._classify_layer_family(layer_type)
+        return palette.get(family, palette.get("Other", "#7B7F86"))
+
+    def _get_layer_box_fill(self, layer_type: str, blend: float = 0.86) -> str:
+        """Return a softened layer fill color for the active submission profile."""
+        accent = self._get_publication_accent(layer_type)
+        return tint_hex_color(accent, blend=blend)
+
+    def _format_shape_for_publication(self, shape: Any) -> str:
+        """Format tensor shapes compactly for figure tables."""
+        if shape in (None, "", ()):
+            return "n/a"
+
+        if isinstance(shape, (list, tuple)):
+            return "x".join(str(dim) for dim in shape)
+
+        return str(shape)
+
+    def _render_publication_diagram(self, layers: List[LayerInfo],
+                                  connections: Dict[str, List[str]],
+                                  title: str = "Neural Network Architecture",
+                                  output_path: str = "architecture.png") -> str:
+        """Render a publication-oriented architecture figure with aligned metadata columns."""
+        plt.style.use("default")
+
+        fig_height = max(6.5, len(layers) * 0.82 + 3.4)
+        fig, ax = plt.subplots(figsize=(11.5, fig_height), dpi=self.dpi)
+        fig.patch.set_facecolor("white")
+        ax.set_facecolor("white")
+        ax.set_xlim(0, 11.8)
+        ax.set_ylim(0, len(layers) + 3.4)
+        ax.axis("off")
+
+        title_color = self._get_profile_value("title_color", "#111827")
+        subtitle_color = self._get_profile_value("subtitle_color", "#4B5563")
+        rule_color = self._get_profile_value("rule_color", "#D1D5DB")
+        row_rule_color = self._get_profile_value("row_rule_color", "#F3F4F6")
+        box_fill = self._get_profile_value("box_fill", "#FCFCFD")
+        box_border = self._get_profile_value("box_border", "#D0D5DD")
+        shadow_color = self._get_profile_value("shadow_color", "#E5E7EB")
+        arrow_color = self._get_profile_value("arrow_color", "#98A2B3")
+        note_color = self._get_profile_value("note_color", "#667085")
+        caption_prefix = self._get_profile_value("caption_prefix", "Figure")
+        profile_label = self._get_profile_value("label", "Generic")
+
+        title_y = len(layers) + 2.6
+        subtitle_y = len(layers) + 2.2
+        header_y = len(layers) + 1.5
+
+        total_params = sum(layer.parameters for layer in layers)
+        unique_families = []
+        for layer in layers:
+            family = self._classify_layer_family(layer.layer_type)
+            if family not in unique_families:
+                unique_families.append(family)
+
+        ax.text(5.9, title_y, title,
+               fontsize=16, fontweight="bold", ha="center", va="center",
+               fontfamily=self.font_family, color=title_color)
+        ax.text(
+            5.9,
+            subtitle_y,
+            f"{len(layers)} stages | {self._format_param_count(total_params)} trainable parameters | {profile_label} profile",
+            fontsize=9.5,
+            ha="center",
+            va="center",
+            fontfamily=self.font_family,
+            color=subtitle_color,
+        )
+
+        ax.plot([0.8, 11.0], [header_y + 0.35, header_y + 0.35], color=rule_color, linewidth=0.8)
+        ax.plot([0.8, 11.0], [header_y - 0.2, header_y - 0.2], color=rule_color, linewidth=0.8)
+
+        column_specs = [
+            (0.95, "Stage", "center"),
+            (3.4, "Operation", "center"),
+            (7.35, "Output Tensor", "center"),
+            (10.15, "Parameters", "right"),
+        ]
+        for x_pos, header, align in column_specs:
+            ax.text(
+                x_pos,
+                header_y,
+                header,
+                fontsize=9,
+                fontweight="bold",
+                ha=align,
+                va="center",
+                fontfamily=self.font_family,
+                color=title_color,
+            )
+
+        layer_positions = {}
+        box_left = 1.45
+        box_width = 3.95
+        box_height = 0.62
+        box_center_x = box_left + box_width / 2
+
+        for index, layer in enumerate(layers):
+            y_pos = len(layers) - index + 0.55
+            layer_positions[layer.name] = (box_center_x, y_pos)
+            accent = self._get_publication_accent(layer.layer_type)
+            family = self._classify_layer_family(layer.layer_type)
+
+            row_top = y_pos + 0.48
+            ax.plot([0.8, 11.0], [row_top, row_top], color=row_rule_color, linewidth=0.8, zorder=0)
+
+            ax.text(
+                0.95,
+                y_pos,
+                f"{index + 1:02d}",
+                fontsize=9,
+                ha="center",
+                va="center",
+                fontfamily=self.font_family,
+                color=subtitle_color,
+            )
+
+            shadow = FancyBboxPatch(
+                (box_left + 0.04, y_pos - box_height / 2 - 0.04),
+                box_width,
+                box_height,
+                boxstyle="round,pad=0.04,rounding_size=0.08",
+                facecolor=shadow_color,
+                edgecolor="none",
+                alpha=0.35,
+                zorder=1,
+            )
+            ax.add_patch(shadow)
+
+            base_box = FancyBboxPatch(
+                (box_left, y_pos - box_height / 2),
+                box_width,
+                box_height,
+                boxstyle="round,pad=0.04,rounding_size=0.08",
+                facecolor=box_fill,
+                edgecolor=box_border,
+                linewidth=0.9,
+                zorder=2,
+            )
+            ax.add_patch(base_box)
+
+            accent_bar = Rectangle(
+                (box_left, y_pos - box_height / 2),
+                0.14,
+                box_height,
+                facecolor=accent,
+                edgecolor="none",
+                zorder=3,
+            )
+            ax.add_patch(accent_bar)
+
+            op_label = layer.layer_type if len(layer.layer_type) <= 24 else f"{layer.layer_type[:21]}..."
+            name_label = layer.name if len(layer.name) <= 32 else f"{layer.name[:29]}..."
+            ax.text(
+                box_left + 0.28,
+                y_pos + 0.09,
+                op_label,
+                fontsize=9.8,
+                fontweight="bold",
+                ha="left",
+                va="center",
+                fontfamily=self.font_family,
+                color=title_color,
+                zorder=4,
+            )
+            ax.text(
+                box_left + 0.28,
+                y_pos - 0.12,
+                f"{name_label} | {family}",
+                fontsize=8.2,
+                ha="left",
+                va="center",
+                fontfamily=self.font_family,
+                color=subtitle_color,
+                zorder=4,
+            )
+
+            output_shape = self._format_shape_for_publication(layer.output_shape)
+            ax.text(
+                7.35,
+                y_pos,
+                output_shape,
+                fontsize=8.6,
+                ha="center",
+                va="center",
+                fontfamily=self.font_family,
+                color=title_color,
+            )
+
+            param_label = self._format_param_count(layer.parameters) if layer.parameters else "0"
+            ax.text(
+                10.15,
+                y_pos,
+                param_label,
+                fontsize=9,
+                ha="right",
+                va="center",
+                fontfamily=self.font_family,
+                color=title_color,
+            )
+
+        for source_name, target_names in connections.items():
+            if source_name not in layer_positions:
+                continue
+
+            source_pos = layer_positions[source_name]
+            for target_name in target_names:
+                if target_name not in layer_positions:
+                    continue
+
+                target_pos = layer_positions[target_name]
+                connection = ConnectionPatch(
+                    (source_pos[0], source_pos[1] - box_height / 2),
+                    (target_pos[0], target_pos[1] + box_height / 2),
+                    "data",
+                    "data",
+                    arrowstyle="-|>",
+                    shrinkA=4,
+                    shrinkB=4,
+                    mutation_scale=12,
+                    fc=arrow_color,
+                    ec=arrow_color,
+                    linewidth=1.1,
+                    alpha=0.95,
+                )
+                ax.add_patch(connection)
+
+        footer_rule_y = 1.15
+        ax.plot([0.8, 11.0], [footer_rule_y, footer_rule_y], color=rule_color, linewidth=0.8)
+        ax.text(
+            0.85,
+            0.72,
+            f"{caption_prefix}. {title}",
+            fontsize=9,
+            ha="left",
+            va="center",
+            fontfamily=self.font_family,
+            style="italic",
+            color=title_color,
+        )
+        ax.text(
+            5.9,
+            0.72,
+            f"Families: {', '.join(unique_families)} | target: {profile_label}",
+            fontsize=8.5,
+            ha="center",
+            va="center",
+            fontfamily=self.font_family,
+            color=subtitle_color,
+        )
+
+        legend_y = 0.33
+        legend_x = 1.1
+        for family in unique_families[:5]:
+            accent = self._get_publication_accent(family)
+            legend_box = Rectangle(
+                (legend_x, legend_y - 0.06),
+                0.18,
+                0.12,
+                facecolor=accent,
+                edgecolor="none",
+                zorder=3,
+            )
+            ax.add_patch(legend_box)
+            ax.text(
+                legend_x + 0.26,
+                legend_y,
+                family,
+                fontsize=8,
+                ha="left",
+                va="center",
+                fontfamily=self.font_family,
+                color=note_color,
+            )
+            legend_x += 1.7
+
+        plt.tight_layout()
+        plt.savefig(output_path, dpi=self.dpi, bbox_inches="tight",
+                   facecolor="white", edgecolor="none")
+        plt.close()
+
+        return output_path
     
     def _render_flowchart_diagram(self, layers: List[LayerInfo], 
                                 connections: Dict[str, List[str]],
@@ -146,6 +470,12 @@ class DiagramRenderer:
         
         # Create figure with appropriate dimensions (much more compact)
         fig, ax = plt.subplots(figsize=(10, max(6, len(layers) * 0.8 + 2)), dpi=self.dpi)
+
+        title_color = self._get_profile_value("title_color", "#333333")
+        subtitle_color = self._get_profile_value("subtitle_color", "#666666")
+        box_border = self._get_profile_value("box_border", "#333333")
+        arrow_color = self._get_profile_value("arrow_color", "#333333")
+        profile_label = self._get_profile_value("label", "Generic")
         
         # Set up coordinate system (compact spacing)
         x_center = 3.5
@@ -166,21 +496,31 @@ class DiagramRenderer:
         # Add title (compact positioning)
         ax.text(x_center, (len(layers) + 1.5) * y_spacing, title, 
                fontsize=14, fontweight='bold', ha='center', va='center',
-               fontfamily=self.font_family)
+               fontfamily=self.font_family, color=title_color)
+        ax.text(
+            x_center,
+            (len(layers) + 1.15) * y_spacing,
+            f"{profile_label} submission profile",
+            fontsize=8.5,
+            ha='center',
+            va='center',
+            fontfamily=self.font_family,
+            color=subtitle_color,
+        )
         
         # Draw layers as clean boxes with full information
         for layer in layers:
             y_pos = y_positions[layer.name]
             
             # Get color for layer type
-            color = self.color_map.get(layer.layer_type, self.color_map['default'])
+            color = self._get_layer_box_fill(layer.layer_type, blend=0.9)
             
             # Create clean rectangle
             box = Rectangle(
                 (x_center - box_width/2, y_pos - box_height/2),
                 box_width, box_height,
                 facecolor=color,
-                edgecolor='#333333',
+                edgecolor=box_border,
                 linewidth=1.5,
                 alpha=0.9
             )
@@ -190,16 +530,16 @@ class DiagramRenderer:
             layer_name = layer.name if len(layer.name) <= 12 else f"{layer.name[:9]}..."
             ax.text(x_center, y_pos + 0.1, layer_name, 
                    fontsize=10, fontweight='bold', ha='center', va='center',
-                   color='#333333', fontfamily=self.font_family)
+                   color=title_color, fontfamily=self.font_family)
             ax.text(x_center, y_pos - 0.1, f"({layer.layer_type})", 
                    fontsize=8, ha='center', va='center',
-                   color='#666666', style='italic', fontfamily=self.font_family)
+                   color=subtitle_color, style='italic', fontfamily=self.font_family)
             
             # Add parameter count to the right (compact)
             param_text = f"{layer.parameters:,}" if layer.parameters > 0 else "0"
             ax.text(x_center + box_width/2 + 0.15, y_pos + 0.1, param_text + " params",
                    fontsize=8, ha='left', va='center', fontweight='bold',
-                   fontfamily=self.font_family, color='#333333')
+                   fontfamily=self.font_family, color=title_color)
             
             # Add memory usage estimate (approximate)
             if layer.parameters > 0:
@@ -209,7 +549,7 @@ class DiagramRenderer:
                 else:
                     memory_text = f"~{memory_mb*1024:.0f}KB"
                 ax.text(x_center + box_width/2 + 0.15, y_pos, memory_text,
-                       fontsize=7, ha='left', va='center', color='#888888',
+                       fontsize=7, ha='left', va='center', color=subtitle_color,
                        fontfamily=self.font_family, style='italic')
             
             # Add shape information to the right (compact)
@@ -218,7 +558,7 @@ class DiagramRenderer:
                 out_shape = str(layer.output_shape).replace('(', '').replace(')', '').replace(' ', '')
                 shape_text = f"{in_shape} → {out_shape}"
                 ax.text(x_center + box_width/2 + 0.15, y_pos - 0.1, shape_text,
-                       fontsize=7, ha='left', va='center', color='#666666',
+                       fontsize=7, ha='left', va='center', color=subtitle_color,
                        fontfamily=self.font_family)
             
             # Add activation function indicator for non-linear layers
@@ -240,7 +580,7 @@ class DiagramRenderer:
                 (x_center, y_start),
                 (x_center, y_end),
                 arrowstyle='->',
-                color='#333333',
+                color=arrow_color,
                 linewidth=1.5,
                 mutation_scale=15,
                 shrinkA=1, shrinkB=1
@@ -264,7 +604,7 @@ class DiagramRenderer:
                 arrow_mid_y = (y_start + y_end) / 2
                 ax.text(x_center + 0.3, arrow_mid_y, flow_text,
                        fontsize=6, ha='center', va='center', 
-                       color='#999999', fontfamily=self.font_family,
+                       color=subtitle_color, fontfamily=self.font_family,
                        bbox=dict(boxstyle="round,pad=0.1", facecolor='white', 
                                 edgecolor='none', alpha=0.8))
         
