@@ -51,6 +51,7 @@ The demo generates:
 - **Smart Arrow Positioning**: Arrows connect node edges properly without crossing over boxes
 - **Compact Layout**: Eliminates gaps and breaks for continuous graph flow
 - **Real-time Execution Tracking**: Monitors forward/backward passes and tensor operations
+- **Better-Than-torchviz API**: Familiar `make_dot(...)` workflow with PNG, DOT, and JSON export built in
 
 ### Professional Quality
 - **Enhanced Color Schemes**: Color-coded operation types and layer categories
@@ -119,6 +120,50 @@ output = model(input_tensor)
 tracker.stop_tracking()
 tracker.save_graph_png("complete_computational_graph.png")
 ```
+
+### Better Than `torchviz`
+
+```python
+import torch
+import torch.nn as nn
+from pytorch_graph import make_dot
+
+model = nn.Sequential(
+    nn.Linear(784, 128),
+    nn.ReLU(),
+    nn.Linear(128, 10),
+)
+
+input_tensor = torch.randn(1, 784, requires_grad=True)
+output = model(input_tensor)
+
+# Torchviz-style usage
+graph = make_dot(output, params=dict(model.named_parameters()))
+
+# Better exports, no Graphviz system dependency required
+graph.render("autograd_graph", format="png")
+graph.render("autograd_graph", format="dot")
+graph.render("autograd_graph", format="json")
+```
+
+You can also enable richer tracing by giving `make_dot(...)` the original `model` and `inputs`:
+
+```python
+graph = make_dot(
+    output,
+    model=model,
+    inputs=input_tensor,
+    output_names=["logits"],
+    show_metadata=True,
+)
+```
+
+Why it is stronger than `torchviz`:
+- No Graphviz install required for high-quality PNG output
+- Works with direct outputs or with `model` plus `inputs` for richer metadata
+- Adds parameter nodes, output nodes, module names, shapes, and parameter counts
+- Exports the same graph as PNG, DOT, or JSON from one object
+- Supports multi-input models when tracing from `model` plus `inputs`
 
 ## Comprehensive Examples
 
@@ -234,6 +279,7 @@ generate_architecture_diagram(model, input_shape, "standard.png", style="standar
 - **Intelligent Legends**: Automatic positioning without overlap
 - **Color-Coded Operations**: Different colors for different operation types
 - **Clean Typography**: Professional fonts and text formatting
+- **Parameter and Output Nodes**: Named leaves and explicit outputs for easier debugging
 
 ## Model Analysis
 
@@ -325,10 +371,12 @@ generate_architecture_diagram(
 - `generate_architecture_diagram()`: Create architecture diagrams
 - `track_computational_graph()`: Track computational graph execution
 - `analyze_computational_graph()`: Analyze graph structure and performance
+- `make_dot()`: Torchviz-style autograd graph builder with richer exports
 - `analyze_model()`: Comprehensive model analysis
 
 ### Classes
 - `ComputationalGraphTracker`: Complete computational graph tracking
+- `AutogradGraph`: DOT, JSON, and PNG export wrapper returned by `make_dot()`
 - `GraphNode`: Individual graph node representation
 - `GraphEdge`: Graph edge representation
 

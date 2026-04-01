@@ -12,6 +12,7 @@ The computational graph tracking module allows you to:
 * **Analyze Performance**: Monitor execution time, memory usage, and operation counts
 * **Visualize Operations**: Create professional diagrams of the computational graph
 * **Export Data**: Save graph data in JSON format for further analysis
+* **Replace torchviz Cleanly**: Use a familiar ``make_dot(...)`` API without needing Graphviz
 
 Key Features
 ------------
@@ -21,6 +22,7 @@ Key Features
 * **Smart Arrow Positioning**: Arrows connect node edges properly without crossing over boxes
 * **Compact Layout**: Eliminates gaps and breaks for continuous flow
 * **Professional Quality**: High-resolution output up to 300 DPI
+* **Richer Exports**: Save the same graph as PNG, DOT, or JSON
 
 Basic Usage
 -----------
@@ -53,8 +55,49 @@ Track a computational graph with the convenience function:
    # Save visualization
    tracker.save_graph_png("computational_graph.png")
 
-Advanced Usage
---------------
+Torchviz-Style Usage
+--------------------
+
+Use ``make_dot(...)`` when you want the familiar torchviz flow, but with richer exports and no
+Graphviz system dependency for PNG output:
+
+.. code-block:: python
+
+   import torch
+   import torch.nn as nn
+   from pytorch_graph import make_dot
+
+   model = nn.Sequential(
+       nn.Linear(784, 128),
+       nn.ReLU(),
+       nn.Linear(128, 10)
+   )
+
+   input_tensor = torch.randn(1, 784, requires_grad=True)
+   output = model(input_tensor)
+
+   graph = make_dot(
+       output,
+       params=dict(model.named_parameters()),
+       model=model,
+       inputs=input_tensor,
+       output_names=["logits"],
+       show_metadata=True
+   )
+
+   graph.render("autograd_graph", format="png")
+   graph.render("autograd_graph", format="dot")
+   graph.render("autograd_graph", format="json")
+
+Compared to ``torchviz``, this API adds:
+
+* Named parameter nodes and explicit output nodes
+* PNG rendering without requiring Graphviz on the system
+* Optional model-aware enrichment with module names, tensor shapes, and parameter counts
+* Multi-input tracing when passing ``model`` plus ``inputs``
+
+Tracker Control
+---------------
 
 Use the ComputationalGraphTracker class for full control:
 

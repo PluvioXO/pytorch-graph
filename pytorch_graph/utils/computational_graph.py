@@ -7,7 +7,7 @@ of PyTorch models, including method calls, tensor operations, and execution flow
 
 import torch
 import torch.nn as nn
-from typing import Dict, List, Optional, Any, Callable, Set, Tuple
+from typing import Dict, List, Optional, Any, Callable, Set, Tuple, Mapping
 from collections import defaultdict, deque
 import time
 import json
@@ -189,6 +189,46 @@ class ComputationalGraphTracker:
         collect(value)
         return grad_fns
 
+    def _collect_named_tensors(self, value: Any, prefix: str = "output") -> List[Tuple[str, torch.Tensor]]:
+        """Collect tensors from nested outputs while preserving readable names."""
+        tensors: List[Tuple[str, torch.Tensor]] = []
+
+        def collect(item: Any, path: str):
+            if torch.is_tensor(item):
+                tensors.append((path, item))
+            elif isinstance(item, (list, tuple)):
+                for index, sub_item in enumerate(item):
+                    collect(sub_item, f"{path}[{index}]")
+            elif isinstance(item, dict):
+                for key, sub_item in item.items():
+                    collect(sub_item, f"{path}.{key}")
+
+        collect(value, prefix)
+        return tensors
+
+    def _clone_input_structure(self, value: Any) -> Any:
+        """Clone tensors inside nested model inputs and enable gradients when possible."""
+        if torch.is_tensor(value):
+            cloned = value.detach().clone()
+            if cloned.is_floating_point() or cloned.is_complex():
+                cloned.requires_grad_(True)
+            return cloned
+        if isinstance(value, list):
+            return [self._clone_input_structure(item) for item in value]
+        if isinstance(value, tuple):
+            return tuple(self._clone_input_structure(item) for item in value)
+        if isinstance(value, dict):
+            return {key: self._clone_input_structure(item) for key, item in value.items()}
+        return value
+
+    def _forward_model(self, model_inputs: Any) -> Any:
+        """Execute the tracked model with tensor, tuple/list, or dict inputs."""
+        if isinstance(model_inputs, dict):
+            return self.model(**model_inputs)
+        if isinstance(model_inputs, (tuple, list)):
+            return self.model(*model_inputs)
+        return self.model(model_inputs)
+
     def _normalize_operation_name(self, operation: Any) -> str:
         """Normalize autograd node names for graph labels."""
         name = str(operation).split("(")[0]
@@ -272,43 +312,52 @@ class ComputationalGraphTracker:
             'current_reserved': memory_stats.get('reserved_bytes.all.current', 0),
         }
 
-    def _build_graph_from_autograd(self, loss: torch.Tensor, module_metadata: Dict[int, Dict[str, Any]]):
-        """Populate GraphNode and GraphEdge instances from an autograd root."""
+    def _build_graph_from_autograd(
+        self,
+        root_functions: List[Any],
+        module_metadata: Dict[int, Dict[str, Any]],
+        parameter_names: Optional[Mapping[int, str]] = None,
+        output_tensors: Optional[List[Tuple[str, torch.Tensor]]] = None,
+        graph_source: str = "autograd",
+    ):
+        """Populate GraphNode and GraphEdge instances from one or more autograd roots."""
         operations: Dict[str, GraphNode] = {}
         edges: Dict[Tuple[str, str], GraphEdge] = {}
         node_ids: Dict[int, int] = {}
         active: Set[str] = set()
         next_id = 0
 
-        def get_node_id(grad_fn: Any) -> str:
+        def get_node_id(grad_fn: Any, prefix: str = "autograd") -> str:
             nonlocal next_id
             key = id(grad_fn)
             if key not in node_ids:
                 node_ids[key] = next_id
                 next_id += 1
-            return f"autograd_{node_ids[key]}"
+            return f"{prefix}_{node_ids[key]}"
 
-        def ensure_node(grad_fn: Any, depth: int) -> str:
-            node_id = get_node_id(grad_fn)
-            module_meta = module_metadata.get(id(grad_fn), {})
-            operation_name = self._normalize_operation_name(grad_fn)
-            family = self._classify_operation_family(operation_name)
+        def ensure_parameter_node(variable: torch.Tensor, depth: int) -> str:
+            node_id = get_node_id(variable, prefix="parameter")
+            parameter_name = parameter_names.get(id(variable)) if parameter_names else None
 
             if node_id not in operations:
                 operations[node_id] = GraphNode(
                     id=node_id,
-                    name=operation_name,
-                    operation_type=self._map_family_to_operation_type(family),
-                    module_name=module_meta.get("module_name"),
-                    input_shapes=module_meta.get("input_shapes"),
-                    output_shapes=module_meta.get("output_shapes"),
-                    parameters=module_meta.get("parameters"),
+                    name=parameter_name or "Parameter",
+                    operation_type=OperationType.GRADIENT_OP,
+                    module_name=parameter_name.rsplit(".", 1)[0] if parameter_name and "." in parameter_name else None,
+                    input_shapes=[tuple(variable.shape)],
+                    output_shapes=[tuple(variable.shape)],
+                    parameters={
+                        "count": int(variable.numel()),
+                    },
                     execution_time=None,
                     memory_usage=None,
                     metadata={
-                        "family": family,
+                        "family": "parameter",
                         "depth": depth,
-                        "module_type": module_meta.get("module_type"),
+                        "dtype": str(variable.dtype),
+                        "requires_grad": bool(variable.requires_grad),
+                        "is_parameter": True,
                     },
                     parent_ids=[],
                     child_ids=[],
@@ -322,7 +371,68 @@ class ComputationalGraphTracker:
 
             return node_id
 
-        def add_edge(source_id: str, target_id: str):
+        def ensure_node(grad_fn: Any, depth: int) -> str:
+            node_id = get_node_id(grad_fn)
+            module_meta = module_metadata.get(id(grad_fn), {})
+            operation_name = self._normalize_operation_name(grad_fn)
+            family = self._classify_operation_family(operation_name)
+            tensor_variable = getattr(grad_fn, "variable", None)
+            parameter_name = None
+
+            if torch.is_tensor(tensor_variable):
+                parameter_name = parameter_names.get(id(tensor_variable)) if parameter_names else None
+
+            if node_id not in operations:
+                metadata = {
+                    "family": family,
+                    "depth": depth,
+                    "module_type": module_meta.get("module_type"),
+                }
+                input_shapes = module_meta.get("input_shapes")
+                output_shapes = module_meta.get("output_shapes")
+                parameters = module_meta.get("parameters")
+
+                if torch.is_tensor(tensor_variable):
+                    tensor_shape = tuple(tensor_variable.shape)
+                    metadata.update({
+                        "parameter_name": parameter_name,
+                        "dtype": str(tensor_variable.dtype),
+                        "requires_grad": bool(tensor_variable.requires_grad),
+                    })
+                    if parameter_name:
+                        metadata["module_type"] = metadata.get("module_type") or "Parameter"
+                    if input_shapes is None:
+                        input_shapes = [tensor_shape]
+                    if output_shapes is None:
+                        output_shapes = [tensor_shape]
+                    if parameters is None:
+                        parameters = {"count": int(tensor_variable.numel())}
+
+                operations[node_id] = GraphNode(
+                    id=node_id,
+                    name=operation_name if not parameter_name else f"{operation_name}: {parameter_name}",
+                    operation_type=self._map_family_to_operation_type(family),
+                    module_name=module_meta.get("module_name"),
+                    input_shapes=input_shapes,
+                    output_shapes=output_shapes,
+                    parameters=parameters,
+                    execution_time=None,
+                    memory_usage=None,
+                    metadata=metadata,
+                    parent_ids=[],
+                    child_ids=[],
+                    timestamp=time.time() - self.start_time if self.start_time else None,
+                )
+            else:
+                operations[node_id].metadata["depth"] = min(
+                    operations[node_id].metadata.get("depth", depth),
+                    depth,
+                )
+
+            return node_id
+
+        def add_edge(source_id: str, target_id: str, edge_type: str = "autograd_dependency",
+                     tensor_shape: Optional[Tuple[int, ...]] = None):
             if (source_id, target_id) in edges:
                 return
 
@@ -330,8 +440,8 @@ class ComputationalGraphTracker:
             edge = GraphEdge(
                 source_id=source_id,
                 target_id=target_id,
-                edge_type="autograd_dependency",
-                tensor_shape=target_node.input_shapes[0] if target_node.input_shapes else None,
+                edge_type=edge_type,
+                tensor_shape=tensor_shape or (target_node.input_shapes[0] if target_node.input_shapes else None),
             )
             edges[(source_id, target_id)] = edge
 
@@ -349,6 +459,16 @@ class ComputationalGraphTracker:
                 return
 
             active.add(node_id)
+            tensor_variable = getattr(grad_fn, "variable", None)
+            if torch.is_tensor(tensor_variable):
+                parameter_node_id = ensure_parameter_node(tensor_variable, depth + 1)
+                add_edge(
+                    parameter_node_id,
+                    node_id,
+                    edge_type="parameter_dependency",
+                    tensor_shape=tuple(tensor_variable.shape),
+                )
+
             for next_fn, _ in getattr(grad_fn, "next_functions", []):
                 if next_fn is None:
                     continue
@@ -358,7 +478,42 @@ class ComputationalGraphTracker:
                 traverse(next_fn, depth + 1)
             active.remove(node_id)
 
-        traverse(loss.grad_fn)
+        for grad_fn in root_functions:
+            traverse(grad_fn)
+
+        if output_tensors:
+            for output_index, (output_name, output_tensor) in enumerate(output_tensors):
+                output_node_id = f"output_{output_index}"
+                output_shape = tuple(output_tensor.shape)
+                operations[output_node_id] = GraphNode(
+                    id=output_node_id,
+                    name=output_name,
+                    operation_type=OperationType.TENSOR_OP,
+                    module_name=None,
+                    input_shapes=[output_shape],
+                    output_shapes=[output_shape],
+                    parameters=None,
+                    execution_time=None,
+                    memory_usage=None,
+                    metadata={
+                        "family": "io",
+                        "depth": -1,
+                        "dtype": str(output_tensor.dtype),
+                        "requires_grad": bool(output_tensor.requires_grad),
+                        "is_output": True,
+                    },
+                    parent_ids=[],
+                    child_ids=[],
+                    timestamp=time.time() - self.start_time if self.start_time else None,
+                )
+                if output_tensor.grad_fn is not None:
+                    source_id = ensure_node(output_tensor.grad_fn, 0)
+                    add_edge(
+                        source_id,
+                        output_node_id,
+                        edge_type="model_output",
+                        tensor_shape=output_shape,
+                    )
 
         ordered_nodes = sorted(
             operations.values(),
@@ -370,9 +525,13 @@ class ComputationalGraphTracker:
 
         self.nodes = {node.id: node for node in ordered_nodes}
         self.edges = sorted(edges.values(), key=lambda edge: (edge.source_id, edge.target_id))
-        self.graph_source = "autograd"
+        self.graph_source = graph_source
 
-    def capture_execution(self, input_tensor: torch.Tensor) -> "ComputationalGraphTracker":
+    def capture_execution(
+        self,
+        input_tensor: Any,
+        parameter_names: Optional[Mapping[int, str]] = None,
+    ) -> "ComputationalGraphTracker":
         """Capture a real autograd graph for a model execution."""
         self._reset_graph_data()
         self.input_tensor = input_tensor
@@ -381,9 +540,7 @@ class ComputationalGraphTracker:
         if self.track_memory and torch.cuda.is_available():
             torch.cuda.reset_peak_memory_stats()
 
-        tracked_input = input_tensor.detach().clone()
-        if tracked_input.is_floating_point() or tracked_input.is_complex():
-            tracked_input.requires_grad_(True)
+        tracked_input = self._clone_input_structure(input_tensor)
 
         module_metadata: Dict[int, Dict[str, Any]] = {}
         hooks = []
@@ -408,19 +565,63 @@ class ComputationalGraphTracker:
                 hooks.append(module.register_forward_hook(create_hook(module_name)))
 
         try:
-            output = self.model(tracked_input)
-            loss = self._reduce_output_to_scalar(output)
+            output = self._forward_model(tracked_input)
             self.execution_time = time.time() - self.start_time if self.track_timing else None
 
             memory_snapshot = self._capture_memory_snapshot()
             if memory_snapshot is not None:
                 self.memory_snapshots.append(memory_snapshot)
 
-            self._build_graph_from_autograd(loss, module_metadata)
+            output_tensors = self._collect_named_tensors(output)
+            root_functions = [tensor.grad_fn for _, tensor in output_tensors if tensor.grad_fn is not None]
+            self._build_graph_from_autograd(
+                root_functions,
+                module_metadata,
+                parameter_names=parameter_names,
+                output_tensors=output_tensors,
+                graph_source="autograd",
+            )
         finally:
             for hook in hooks:
                 hook.remove()
 
+        return self
+
+    def capture_output(
+        self,
+        output: Any,
+        params: Optional[Mapping[str, torch.Tensor]] = None,
+        output_names: Optional[List[str]] = None,
+    ) -> "ComputationalGraphTracker":
+        """Build a graph directly from model outputs without rerunning the model."""
+        self._reset_graph_data()
+        self.start_time = time.time()
+
+        output_tensors = self._collect_named_tensors(output)
+        if output_names is not None:
+            if len(output_names) != len(output_tensors):
+                raise ValueError(
+                    f"Expected {len(output_tensors)} output names, received {len(output_names)}."
+                )
+            output_tensors = [
+                (output_name, tensor)
+                for output_name, (_, tensor) in zip(output_names, output_tensors)
+            ]
+
+        parameter_names = {
+            id(tensor): name
+            for name, tensor in (params or {}).items()
+            if torch.is_tensor(tensor)
+        }
+        root_functions = [tensor.grad_fn for _, tensor in output_tensors if tensor.grad_fn is not None]
+
+        self._build_graph_from_autograd(
+            root_functions,
+            {},
+            parameter_names=parameter_names,
+            output_tensors=output_tensors,
+            graph_source="autograd_output",
+        )
         return self
     
     def _register_module_hooks(self):
@@ -756,10 +957,11 @@ class ComputationalGraphTracker:
         except ImportError as e:
             raise ImportError(f"Required dependencies for {renderer} visualization not available: {e}")
     
-    def save_graph_png(self, filepath: str, width: int = 1200, height: int = 800, 
-                       dpi: int = 300, show_legend: bool = True, 
+    def save_graph_png(self, filepath: str, width: int = 1200, height: int = 800,
+                       dpi: int = 300, show_legend: bool = True,
                        node_size: int = 20, font_size: int = 10,
-                       submission_type: Optional[str] = None) -> str:
+                       submission_type: Optional[str] = None,
+                       title: Optional[str] = None) -> str:
         """
         Save the computational graph as a PNG image with a publication-oriented layout.
         
@@ -772,6 +974,7 @@ class ComputationalGraphTracker:
             node_size: Size of nodes in the graph
             font_size: Font size for labels
             submission_type: Publication target profile
+            title: Optional chart title override
             
         Returns:
             Path to the saved PNG file
@@ -788,7 +991,7 @@ class ComputationalGraphTracker:
             
         except ImportError:
             raise ImportError("Matplotlib is required for PNG generation. Install with: pip install matplotlib")
-        if (not self.nodes or self.graph_source != "autograd") and getattr(self, "input_tensor", None) is not None:
+        if (not self.nodes or self.graph_source not in {"autograd", "autograd_output"}) and getattr(self, "input_tensor", None) is not None:
             self.capture_execution(self.input_tensor)
 
         graph_data = self.get_graph_data()
@@ -836,6 +1039,7 @@ class ComputationalGraphTracker:
             "tensor": {"accent": submission_profile["family_palette"]["Tensor Shape"], "label": "Tensor Shape"},
             "backward": {"accent": submission_profile["family_palette"]["Dense"], "label": "Backward"},
             "gradient": {"accent": submission_profile["family_palette"]["Regularization"], "label": "Gradient"},
+            "parameter": {"accent": submission_profile["family_palette"]["Dense"], "label": "Parameter"},
             "io": {"accent": submission_profile["family_palette"]["Recurrent"], "label": "Input / Output"},
             "other": {"accent": submission_profile["family_palette"]["Other"], "label": "Other"},
         }
@@ -976,11 +1180,11 @@ class ComputationalGraphTracker:
         ax.set_ylim(min(all_y) - 1.5, max(all_y) + 1.5)
         ax.axis("off")
 
-        model_name = type(self.model).__name__
+        model_name = title or f"{type(self.model).__name__} Autograd Graph"
         ax.text(
             0.0,
             1.05,
-            f"{model_name} Autograd Graph",
+            model_name,
             transform=ax.transAxes,
             fontsize=16,
             fontweight="bold",
@@ -1027,10 +1231,14 @@ class ComputationalGraphTracker:
                 legend.get_frame().set_edgecolor(legend_frame)
                 legend.get_frame().set_alpha(0.98)
 
+        trace_note = "autograd dependencies traced from model outputs."
+        if self.graph_source == "autograd_output":
+            trace_note = "autograd dependencies traced directly from output tensors."
+
         fig.text(
             0.01,
             0.01,
-            f"{profile_label} styling | autograd dependencies traced from loss = output.sum().",
+            f"{profile_label} styling | {trace_note}",
             fontsize=8,
             color=note_color,
         )
@@ -1241,7 +1449,7 @@ class ComputationalGraphTracker:
         return plt.gcf()
 
 
-def track_computational_graph(model: nn.Module, input_tensor: torch.Tensor,
+def track_computational_graph(model: nn.Module, input_tensor: Any,
                             track_memory: bool = True, track_timing: bool = True,
                             track_tensor_ops: bool = True) -> ComputationalGraphTracker:
     """
@@ -1266,9 +1474,13 @@ def track_computational_graph(model: nn.Module, input_tensor: torch.Tensor,
     )
     
     tracker.input_tensor = input_tensor
+    parameter_names = {
+        id(parameter): name
+        for name, parameter in model.named_parameters()
+    }
     
     try:
-        tracker.capture_execution(input_tensor)
+        tracker.capture_execution(input_tensor, parameter_names=parameter_names)
     except Exception as e:
         print(f"Warning: Could not track computational graph: {e}")
         # Create minimal fallback data

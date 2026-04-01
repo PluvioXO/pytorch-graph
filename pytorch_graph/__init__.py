@@ -40,6 +40,7 @@ if TORCH_AVAILABLE:
         from .core.parser import PyTorchModelParser
         from .utils.pytorch_hooks import HookManager, ActivationExtractor
         from .utils.model_analyzer import ModelAnalyzer
+        from .torchviz import AutogradGraph, make_dot, make_autograd_dot
     except ImportError as e:
         warnings.warn(f"Failed to import PyTorch-dependent modules: {e}")
 
@@ -471,6 +472,9 @@ if TORCH_AVAILABLE:
             'HookManager', 
             'ActivationExtractor',
             'ModelAnalyzer',
+            'AutogradGraph',
+            'make_dot',
+            'make_autograd_dot',
         ])
     except NameError:
         pass  # Classes not imported due to import errors
