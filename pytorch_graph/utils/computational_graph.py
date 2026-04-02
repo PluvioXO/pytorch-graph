@@ -1054,13 +1054,43 @@ class ComputationalGraphTracker:
 
         node_width = 2.75
         node_height = 1.0
-        x_spacing = 3.35
         y_spacing = 1.55
         positions = {}
 
+        operation_lookup = {
+            operation["node_id"]: operation
+            for operation in operations
+        }
+        depth_transition_counts: Dict[int, int] = defaultdict(int)
+        for source_id, target_id in graph_edges:
+            source_operation = operation_lookup.get(source_id)
+            target_operation = operation_lookup.get(target_id)
+            if source_operation is None or target_operation is None:
+                continue
+
+            source_compact_depth = depth_mapping.get(source_operation["depth"])
+            target_compact_depth = depth_mapping.get(target_operation["depth"])
+            if source_compact_depth is None or target_compact_depth is None:
+                continue
+
+            lower_depth = min(source_compact_depth, target_compact_depth)
+            upper_depth = max(source_compact_depth, target_compact_depth)
+            for gap_index in range(lower_depth, upper_depth):
+                depth_transition_counts[gap_index] += 1
+
+        base_column_gap = 0.95
+        extra_gap_per_edge = 0.18
+        column_positions: Dict[int, float] = {max_compact_depth: 1.5}
+        for compact_depth in range(max_compact_depth - 1, -1, -1):
+            edge_count = depth_transition_counts.get(compact_depth, 1)
+            column_gap = base_column_gap + max(0, edge_count - 1) * extra_gap_per_edge
+            column_positions[compact_depth] = (
+                column_positions[compact_depth + 1] + node_width + column_gap
+            )
+
         for original_depth in compact_depths:
             compact_depth = depth_mapping[original_depth]
-            x_pos = 1.5 + (max_compact_depth - compact_depth) * x_spacing
+            x_pos = column_positions[compact_depth]
             group = depth_groups[original_depth]
             total_height = (len(group) - 1) * y_spacing
             start_y = total_height / 2
@@ -1081,27 +1111,125 @@ class ComputationalGraphTracker:
         fig.patch.set_facecolor("white")
         ax.set_facecolor("white")
 
+        grouped_edges: Dict[Tuple[float, float], List[Dict[str, float]]] = defaultdict(list)
+        edge_specs: List[Dict[str, float]] = []
+
         for source_id, target_id in graph_edges:
             if source_id not in positions or target_id not in positions:
                 continue
 
             start_x, start_y = positions[source_id]
             end_x, end_y = positions[target_id]
-            curvature = 0.12 if abs(start_y - end_y) > 0.15 else 0.0
-            if end_y < start_y:
-                curvature *= -1
+            source_edge_x = start_x + node_width / 2
+            target_edge_x = end_x - node_width / 2
+            edge_spec = {
+                "source_id": source_id,
+                "target_id": target_id,
+                "start_y": start_y,
+                "end_y": end_y,
+                "source_edge_x": source_edge_x,
+                "target_edge_x": target_edge_x,
+            }
+            edge_specs.append(edge_spec)
+            grouped_edges[(source_edge_x, target_edge_x)].append(edge_spec)
+
+        lane_centers: Dict[Tuple[str, str], float] = {}
+        for lane_key, lane_edges in grouped_edges.items():
+            source_edge_x, target_edge_x = lane_key
+            available_width = max(0.0, target_edge_x - source_edge_x)
+            if available_width <= 0:
+                for edge_spec in lane_edges:
+                    lane_centers[(edge_spec["source_id"], edge_spec["target_id"])] = (
+                        source_edge_x + target_edge_x
+                    ) / 2
+                continue
+
+            horizontal_margin = min(0.18, available_width * 0.22)
+            left_bound = source_edge_x + horizontal_margin
+            right_bound = target_edge_x - horizontal_margin
+            if right_bound <= left_bound:
+                left_bound = source_edge_x + available_width * 0.35
+                right_bound = target_edge_x - available_width * 0.35
+
+            ordered_edges = sorted(
+                lane_edges,
+                key=lambda edge: ((edge["start_y"] + edge["end_y"]) / 2, edge["start_y"], edge["end_y"]),
+                reverse=True,
+            )
+            if len(ordered_edges) == 1:
+                lane_positions = [(left_bound + right_bound) / 2]
+            else:
+                lane_positions = [
+                    left_bound + (right_bound - left_bound) * ((index + 1) / (len(ordered_edges) + 1))
+                    for index in range(len(ordered_edges))
+                ]
+
+            for edge_spec, lane_center_x in zip(ordered_edges, lane_positions):
+                lane_centers[(edge_spec["source_id"], edge_spec["target_id"])] = lane_center_x
+
+        for edge_spec in edge_specs:
+            source_id = edge_spec["source_id"]
+            target_id = edge_spec["target_id"]
+            start_y = edge_spec["start_y"]
+            end_y = edge_spec["end_y"]
+            source_edge_x = edge_spec["source_edge_x"]
+            target_edge_x = edge_spec["target_edge_x"]
+
+            if abs(start_y - end_y) <= 0.08:
+                arrow = FancyArrowPatch(
+                    (source_edge_x, start_y),
+                    (target_edge_x, end_y),
+                    arrowstyle="-|>",
+                    mutation_scale=max(10, node_size // 2),
+                    linewidth=1.1,
+                    color=arrow_color,
+                    alpha=0.9,
+                    shrinkA=4,
+                    shrinkB=4,
+                    zorder=1,
+                )
+                ax.add_patch(arrow)
+                continue
+
+            lane_center_x = lane_centers[(source_id, target_id)]
+            arrow_head_length = min(0.2, max(0.1, (target_edge_x - lane_center_x) * 0.5))
+            arrow_start_x = target_edge_x - arrow_head_length
+
+            ax.plot(
+                [source_edge_x, lane_center_x],
+                [start_y, start_y],
+                color=arrow_color,
+                linewidth=1.1,
+                alpha=0.9,
+                zorder=1,
+            )
+            ax.plot(
+                [lane_center_x, lane_center_x],
+                [start_y, end_y],
+                color=arrow_color,
+                linewidth=1.1,
+                alpha=0.9,
+                zorder=1,
+            )
+            ax.plot(
+                [lane_center_x, arrow_start_x],
+                [end_y, end_y],
+                color=arrow_color,
+                linewidth=1.1,
+                alpha=0.9,
+                zorder=1,
+            )
 
             arrow = FancyArrowPatch(
-                (start_x + node_width / 2, start_y),
-                (end_x - node_width / 2, end_y),
+                (arrow_start_x, end_y),
+                (target_edge_x, end_y),
                 arrowstyle="-|>",
                 mutation_scale=max(10, node_size // 2),
                 linewidth=1.1,
                 color=arrow_color,
                 alpha=0.9,
-                connectionstyle=f"arc3,rad={curvature}",
-                shrinkA=6,
-                shrinkB=6,
+                shrinkA=0,
+                shrinkB=4,
                 zorder=1,
             )
             ax.add_patch(arrow)
